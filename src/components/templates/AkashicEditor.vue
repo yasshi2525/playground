@@ -118,7 +118,6 @@ export default defineComponent({
 		watch(
 			() => gameConfs.pseudoFiles,
 			pseudoFiles => {
-				console.log("watch");
 				changeCurrentPseudoFile(gameConfs.entryAssetUri);
 			},
 			{
