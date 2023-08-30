@@ -110,9 +110,6 @@ export default defineComponent({
 					);
 					// 重複ロジックここまで
 				}
-			},
-			{
-				deep: true
 			}
 		);
 

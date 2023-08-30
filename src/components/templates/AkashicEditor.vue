@@ -116,8 +116,8 @@ export default defineComponent({
 		);
 
 		watch(
-			() => gameConfs.pseudoFiles,
-			pseudoFiles => {
+			() => gameConfs.entryAssetUri,
+			() => {
 				changeCurrentPseudoFile(gameConfs.entryAssetUri);
 			},
 			{
