@@ -22,7 +22,8 @@ const router = createRouter({
 			component: () => import("~/components/pages/PlaygroundPage.vue"),
 			props: router => {
 				const gameJsonUri = urlJoin(
-					`${window.location.protocol}//${window.location.host}/${window.location.pathname}`,
+					`${window.location.protocol}//${window.location.host}`,
+					window.location.pathname,
 					`presets/${router.params.name}/game.json`
 				);
 				return {
