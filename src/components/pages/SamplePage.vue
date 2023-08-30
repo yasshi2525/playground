@@ -214,7 +214,7 @@ export default defineComponent({
 	.container-editor {
 		width: 100%;
 		height: 100%;
-		overflow: visible;
+		overflow: hidden;
 		display: flex;
 		flex-direction: row;
 		position: relative;
