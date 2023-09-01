@@ -22,8 +22,6 @@ module.exports = {
     "plugin:vue/vue3-recommended",
     "plugin:jest/recommended",
     "prettier",
-    "prettier/vue",
-    "prettier/@typescript-eslint",
     "plugin:storybook/recommended"
   ],
   ignorePatterns: "public/**/*.d.ts",
