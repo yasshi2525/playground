@@ -23,9 +23,9 @@
 	</div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import { marked } from "marked";
-import { defineComponent, provide, reactive, watch } from "vue";
+import { provide, reactive, watch } from "vue";
 import DownloadButton from "~/components/molecules/DownloadButton.vue";
 import AkashicEditor from "~/components/templates/AkashicEditor.vue";
 import GameController from "~/components/templates/GameController.vue";
@@ -42,84 +42,64 @@ marked.setOptions({
 	renderer
 });
 
-export interface State {
+interface Props {
+	gameJsonUri: string;
+	name: string;
+	base64: string;
+	autoplay?: boolean;
+	showDownloadButton?: boolean;
+}
+
+interface State {
 	title: string | null;
 	description: string | null;
 	processingAsZip: boolean;
 }
 
-export default defineComponent({
-	components: {
-		DownloadButton,
-		AkashicEditor,
-		GameController
-	},
-	props: {
-		gameJsonUri: {
-			type: String,
-			required: true
-		},
-		autoplay: {
-			type: Boolean,
-			default: false
-		},
-		name: {
-			type: String,
-			required: true
-		},
-		showDownloadButton: {
-			type: Boolean,
-			default: true
-		}
-	},
-	setup(props) {
-		const gameConfs = useGameJSONResolver();
-		const gameContext = useGameContext();
-		provide(useGameJSONResolverKey, gameConfs);
-		provide(useGameContextKey, gameContext);
-
-		gameConfs.fetchPseudoFilesFromUri(props.gameJsonUri);
-
-		const state = reactive<State>({
-			title: null,
-			description: null,
-			processingAsZip: false
-		});
-
-		watch(
-			() => [gameConfs.title, gameConfs.description],
-			([title, description]) => {
-				state.title = title ?? null;
-				state.description = description ? marked(description) : null;
-			},
-			{
-				deep: true
-			}
-		);
-
-		watch(
-			() => gameConfs.pseudoFiles,
-			() => {
-				if (props.autoplay) {
-					// TODO: 重複ロジック
-					const gameJSON = gameConfs.pseudoFiles.find(({ assetType }) => assetType === "game.json");
-					gameContext.run(
-						gameConfs.generateGameJSON(gameJSON && gameJSON.editorType === "text" ? JSON.parse(gameJSON.value) : undefined),
-						gameConfs.pseudoFiles,
-						gameConfs.assetBase
-					);
-					// 重複ロジックここまで
-				}
-			}
-		);
-
-		return {
-			props,
-			state,
-			gameConfs
-		};
-	}
+const props = withDefaults(defineProps<Props>(), {
+	autoplay: false,
+	showDownloadButton: true
 });
+
+const gameConfs = useGameJSONResolver();
+const gameContext = useGameContext();
+provide(useGameJSONResolverKey, gameConfs);
+provide(useGameContextKey, gameContext);
+
+gameConfs.fetchPseudoFilesFromUri(props.gameJsonUri);
+
+const state = reactive<State>({
+	title: null,
+	description: null,
+	processingAsZip: false
+});
+
+watch(
+	() => [gameConfs.title, gameConfs.description],
+	([title, description]) => {
+		state.title = title ?? null;
+		state.description = description ? marked(description) : null;
+	},
+	{
+		deep: true
+	}
+);
+
+watch(
+	() => gameConfs.pseudoFiles,
+	() => {
+		if (props.autoplay) {
+			// TODO: 重複ロジック
+			const gameJSON = gameConfs.pseudoFiles.find(({ assetType }) => assetType === "game.json");
+			gameContext.run(
+				gameConfs.generateGameJSON(gameJSON && gameJSON.editorType === "text" ? JSON.parse(gameJSON.value) : undefined),
+				gameConfs.pseudoFiles,
+				gameConfs.assetBase
+			);
+			// 重複ロジックここまで
+		}
+	}
+);
 </script>
 
 <style scoped>

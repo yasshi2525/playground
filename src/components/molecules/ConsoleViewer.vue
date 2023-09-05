@@ -1,30 +1,21 @@
 <template>
 	<div class="console-viewer-container">
 		<ul>
-			<li v-for="(value, i) in props.values" :key="i" :class="[value.type]">
+			<li v-for="(value, i) in values" :key="i" :class="[value.type]">
 				[{{ value.type.toUpperCase() }}] {{ value.name }}: {{ value.message }}
 			</li>
 		</ul>
 	</div>
 </template>
 
-<script lang="ts">
-import { defineComponent, PropType } from "vue";
+<script setup lang="ts">
 import { ConsoleValue } from "~/types/ConsoleValue";
 
-export default defineComponent({
-	props: {
-		values: {
-			type: Array as PropType<ConsoleValue[]>,
-			required: true
-		}
-	},
-	setup(props) {
-		return {
-			props
-		};
-	}
-});
+interface Props {
+	values: ConsoleValue[];
+}
+
+defineProps<Props>();
 </script>
 
 <style scoped>

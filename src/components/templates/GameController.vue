@@ -11,54 +11,38 @@
 	/>
 </template>
 
-<script lang="ts">
-import { defineComponent, inject, onMounted, ref } from "vue";
-import GameCanvas from "~/components/organisms/GameCanvas.vue";
+<script setup lang="ts">
+import { inject, onMounted, ref } from "vue";
+import GameCanvas, { getCanvasElement } from "~/components/organisms/GameCanvas.vue";
 import { useGameContextKey, UseGameContextStore } from "~/composables/useGameContext";
 import { useGameJSONResolverKey, UseGameJSONResolverStore } from "~/composables/useGameJSONResolver";
 
-export default defineComponent({
-	components: {
-		GameCanvas
-	},
-	setup() {
-		const gameConfs = inject(useGameJSONResolverKey) as UseGameJSONResolverStore;
-		const gameContext = inject(useGameContextKey) as UseGameContextStore;
-		const gameCanvasRef = ref<InstanceType<typeof GameCanvas>>();
+const gameConfs = inject(useGameJSONResolverKey) as UseGameJSONResolverStore;
+const gameContext = inject(useGameContextKey) as UseGameContextStore;
+const gameCanvasRef = ref<InstanceType<typeof GameCanvas>>();
 
-		onMounted(() => {
-			const canvas = gameCanvasRef.value!.getCanvasElement();
-			gameContext.setCanvas(canvas);
-		});
-
-		const run = () => {
-			// TODO: 重複ロジック
-			const gameJSON = gameConfs.pseudoFiles.find(({ assetType }) => assetType === "game.json");
-			gameContext.run(
-				gameConfs.generateGameJSON(gameJSON && gameJSON.editorType === "text" ? JSON.parse(gameJSON.value) : undefined),
-				gameConfs.pseudoFiles,
-				gameConfs.assetBase
-			);
-		};
-
-		const stop = () => {
-			gameContext.stop();
-		};
-
-		const reload = () => {
-			run();
-		};
-
-		return {
-			gameCanvasRef,
-			gameConfs,
-			gameContext,
-			run,
-			stop,
-			reload
-		};
-	}
+onMounted(() => {
+	const canvas = getCanvasElement();
+	gameContext.setCanvas(canvas);
 });
+
+const run = () => {
+	// TODO: 重複ロジック
+	const gameJSON = gameConfs.pseudoFiles.find(({ assetType }) => assetType === "game.json");
+	gameContext.run(
+		gameConfs.generateGameJSON(gameJSON && gameJSON.editorType === "text" ? JSON.parse(gameJSON.value) : undefined),
+		gameConfs.pseudoFiles,
+		gameConfs.assetBase
+	);
+};
+
+const stop = () => {
+	gameContext.stop();
+};
+
+const reload = () => {
+	run();
+};
 </script>
 
 <style scoped>

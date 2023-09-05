@@ -16,6 +16,7 @@ export interface PseudoGameJSONFile {
 	uri: string;
 	language: "json";
 	value: string;
+	hidden?: boolean;
 }
 
 export interface PseudoScriptAssetFile extends PseudoAssetFile {

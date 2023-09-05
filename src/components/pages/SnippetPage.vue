@@ -28,91 +28,66 @@
 	</div>
 </template>
 
-<script lang="ts">
-import { defineComponent, provide, reactive } from "vue";
+<script setup lang="ts">
+import { provide, reactive } from "vue";
 import DownloadButton from "~/components/molecules/DownloadButton.vue";
 import AkashicEditor from "~/components/templates/AkashicEditor.vue";
 import GameController from "~/components/templates/GameController.vue";
 import { useGameContext, useGameContextKey } from "~/composables/useGameContext";
 import { useGameJSONResolver, useGameJSONResolverKey } from "~/composables/useGameJSONResolver";
 
-export interface State {
+interface Props {
+	gameJsonUri: string;
+	name: string;
+	autoplay?: boolean;
+	showDownloadButton?: boolean;
+	showTab?: boolean;
+}
+
+interface State {
 	currentPageTabName: string;
 	ready: boolean;
 	processingAsZip: boolean;
 }
 
-export default defineComponent({
-	components: {
-		DownloadButton,
-		AkashicEditor,
-		GameController
-	},
-	props: {
-		gameJsonUri: {
-			type: String,
-			required: true
-		},
-		autoplay: {
-			type: Boolean,
-			default: false
-		},
-		name: {
-			type: String,
-			required: true
-		},
-		showDownloadButton: {
-			type: Boolean,
-			default: true
-		},
-		showTab: {
-			type: Boolean,
-			default: true
-		}
-	},
-	setup(props) {
-		const gameConfs = useGameJSONResolver();
-		const gameContext = useGameContext();
-		provide(useGameJSONResolverKey, gameConfs);
-		provide(useGameContextKey, gameContext);
-
-		const state = reactive<State>({
-			currentPageTabName: "code",
-			ready: props.autoplay,
-			processingAsZip: false
-		});
-
-		const handleClickOverlay = async () => {
-			await gameConfs.fetchPseudoFilesFromUri(props.gameJsonUri);
-			// TODO: 重複ロジック
-			const gameJSON = gameConfs.pseudoFiles.find(({ assetType }) => assetType === "game.json");
-			gameContext.run(
-				gameConfs.generateGameJSON(gameJSON && gameJSON.editorType === "text" ? JSON.parse(gameJSON.value) : undefined),
-				gameConfs.pseudoFiles,
-				gameConfs.assetBase
-			);
-			// 重複ロジックここまで
-			state.currentPageTabName = "game";
-			state.ready = true;
-		};
-
-		const changeCurrentPageTab = (name: string) => {
-			state.currentPageTabName = name;
-		};
-
-		if (props.autoplay) {
-			handleClickOverlay();
-		}
-
-		return {
-			props,
-			state,
-			gameConfs,
-			handleClickOverlay,
-			changeCurrentPageTab
-		};
-	}
+const props = withDefaults(defineProps<Props>(), {
+	autoplay: false,
+	showDownloadButton: true,
+	showTab: true
 });
+
+const gameConfs = useGameJSONResolver();
+const gameContext = useGameContext();
+provide(useGameJSONResolverKey, gameConfs);
+provide(useGameContextKey, gameContext);
+
+const state = reactive<State>({
+	currentPageTabName: "code",
+	ready: props.autoplay,
+	processingAsZip: false
+});
+
+const handleClickOverlay = async () => {
+	await gameConfs.fetchPseudoFilesFromUri(props.gameJsonUri);
+	// TODO: 重複ロジック
+	const gameJSON = gameConfs.pseudoFiles.find(({ assetType }) => assetType === "game.json");
+	gameContext.run(
+		gameConfs.generateGameJSON(gameJSON && gameJSON.editorType === "text" ? JSON.parse(gameJSON.value) : undefined),
+		gameConfs.pseudoFiles,
+		gameConfs.assetBase
+	);
+	// 重複ロジックここまで
+	state.currentPageTabName = "game";
+	state.ready = true;
+};
+
+const changeCurrentPageTab = (name: string) => {
+	state.currentPageTabName = name;
+};
+
+if (props.autoplay) {
+	handleClickOverlay();
+}
 </script>
 
 <style scoped>

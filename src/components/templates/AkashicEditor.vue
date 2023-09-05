@@ -11,7 +11,7 @@
 							active: state.currentPseudoFile && state.currentPseudoFile.uri === gameConfs.pseudoFiles[i].uri,
 							hidden: gameConfs.pseudoFiles[i].hidden
 						}"
-						:title="gameConfs.pseudoFiles[i].virtualPath"
+						:title="gameConfs.pseudoFiles[i].name"
 						@click="changeCurrentPseudoFile(gameConfs.pseudoFiles[i].uri)"
 					>
 						<span v-if="gameConfs.pseudoFiles[i].assetType === 'game.json'"
@@ -54,8 +54,8 @@
 	</div>
 </template>
 
-<script lang="ts">
-import { defineComponent, inject, reactive, ref, watch, provide } from "vue";
+<script setup lang="ts">
+import { inject, reactive, watch, provide } from "vue";
 import AudioPlayer from "~/components/molecules/AudioPlayer.vue";
 import ConsoleViewer from "~/components/molecules/ConsoleViewer.vue";
 import ImageViewer from "~/components/molecules/ImageViewer.vue";
@@ -68,87 +68,63 @@ import { PseudoFile } from "~/types/PseudoFile";
 
 interface State {
 	currentPseudoFile: PseudoFile | null;
-	handleEditorValueChanged: ((value: string) => void) | null;
+	handleEditorValueChanged?: (value: string) => void;
 }
 
-export default defineComponent({
-	components: {
-		ImageViewer,
-		AudioPlayer,
-		ConsoleViewer,
-		CodeEditor
-	},
-	setup(props) {
-		const editorRef = ref<HTMLDivElement>();
-		const state = reactive<State>({
-			currentPseudoFile: null,
-			handleEditorValueChanged: null
-		});
-
-		const editorState = useCodeEditor();
-		const gameContext = inject(useGameContextKey) as UseGameContextStore;
-		const gameConfs = inject(useGameJSONResolverKey) as UseGameJSONResolverStore;
-
-		provide(useCodeEditorKey, editorState);
-
-		gameContext.handleErrors(window);
-
-		watch(
-			() => gameConfs.dependencies,
-			async dependencies => {
-				if (!dependencies.length) return;
-				const extLibsResolver = useExtraLibsResolver();
-				const uris = extLibsResolver.getExtraLibUris(gameContext.currentVersion, dependencies);
-				extLibsResolver.fetchExtraLibsFromUris(uris);
-				watch(
-					() => extLibsResolver.extraLibs,
-					extraLibs => {
-						editorState.setExtraLibs(extraLibs);
-					},
-					{
-						deep: true
-					}
-				);
-			},
-			{
-				deep: true
-			}
-		);
-
-		watch(
-			() => gameConfs.entryAssetUri,
-			() => {
-				changeCurrentPseudoFile(gameConfs.entryAssetUri);
-			},
-			{
-				deep: true
-			}
-		);
-
-		const changeCurrentPseudoFile = (uri: string | null) => {
-			const file = gameConfs.pseudoFiles.find(f => f.uri === uri);
-			if (!file) return;
-			if (file.editorType === "text") {
-				editorState.setValue(file.uri, file.value, file.language);
-				state.handleEditorValueChanged = (value: string) => {
-					file.value = value;
-				};
-			} else {
-				state.handleEditorValueChanged = null;
-			}
-			state.currentPseudoFile = file;
-		};
-
-		return {
-			state,
-			props,
-			gameConfs,
-			gameContext,
-			editorRef,
-			changeCurrentPseudoFile
-		};
-	}
+const state = reactive<State>({
+	currentPseudoFile: null,
+	handleEditorValueChanged: undefined
 });
+
+const editorState = useCodeEditor();
+const gameContext = inject(useGameContextKey) as UseGameContextStore;
+const gameConfs = inject(useGameJSONResolverKey) as UseGameJSONResolverStore;
+provide(useCodeEditorKey, editorState);
+
+gameContext.handleErrors(window);
+
+watch(
+	() => gameConfs.dependencies,
+	async dependencies => {
+		if (!dependencies.length) return;
+		const extLibsResolver = useExtraLibsResolver();
+		const uris = extLibsResolver.getExtraLibUris(gameContext.currentVersion, dependencies);
+		extLibsResolver.fetchExtraLibsFromUris(uris);
+		watch(
+			() => extLibsResolver.extraLibs,
+			extraLibs => {
+				editorState.setExtraLibs(extraLibs);
+			},
+			{
+				deep: true
+			}
+		);
+	},
+	{
+		deep: true
+	}
+);
+
+watch(
+	() => gameConfs.entryAssetUri,
+	() => {
+		changeCurrentPseudoFile(gameConfs.entryAssetUri);
+	}
+);
+
+const changeCurrentPseudoFile = (uri: string | null) => {
+	const file = gameConfs.pseudoFiles.find(f => f.uri === uri);
+	if (!file) return;
+	if (file.editorType === "text") {
+		editorState.setValue(file.uri, file.value, file.language);
+		state.handleEditorValueChanged = (value: string) => {
+			file.value = value;
+		};
+	} else {
+		state.handleEditorValueChanged = undefined;
+	}
+	state.currentPseudoFile = file;
+};
 </script>
 
 <style scoped>

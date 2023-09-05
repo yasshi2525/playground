@@ -1,23 +1,13 @@
 <template>
-	<button class="button-container" @click="props.onClick"><slot /></button>
+	<button class="button-container" @click="onClick"><slot /></button>
 </template>
 
-<script lang="ts">
-import { defineComponent, PropType } from "vue";
+<script setup lang="ts">
+interface Props {
+	onClick: () => void;
+}
 
-export default defineComponent({
-	props: {
-		onClick: {
-			type: Function as PropType<() => void>,
-			required: true
-		}
-	},
-	setup(props) {
-		return {
-			props
-		};
-	}
-});
+defineProps<Props>();
 </script>
 
 <style scoped>
