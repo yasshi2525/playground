@@ -1,17 +1,17 @@
 import type { Meta, StoryObj } from "@storybook/vue3";
-import Button from "~/components/atoms/Button.vue";
+import BaseButton from "~/components/atoms/BaseButton.vue";
 
-const meta: Meta<typeof Button> = {
-	title: "atoms / Button",
-	component: Button,
+const meta: Meta<typeof BaseButton> = {
+	title: "atoms / BaseButton",
+	component: BaseButton,
 	render: (args) => ({
 		components: {
-			Button,
+			BaseButton,
 		},
 		setup() {
 			return { args };
 		},
-		template: "<Button v-bind='args'>Click Me</Button>",
+		template: "<BaseButton v-bind='args'>Click Me</BaseButton>",
 	})
 };
 export default meta;
