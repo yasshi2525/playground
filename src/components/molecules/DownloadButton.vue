@@ -1,19 +1,19 @@
 <template>
 	<div>
-		<Button class="download-button" :onClick="handleClickDownloadAsZip" title="download as Zip">
+		<BaseButton class="download-button" :onClick="handleClickDownloadAsZip" title="download as Zip">
 			<template v-if="state.processing">
 				<i class="rotate"></i>
 			</template>
 			<template v-else>
 				<i class="material-icons md-36">cloud_download</i>
 			</template>
-		</Button>
+		</BaseButton>
 	</div>
 </template>
 
 <script lang="ts">
 import { defineComponent, reactive, PropType } from "vue";
-import Button from "~/components/atoms/Button.vue";
+import BaseButton from "~/components/atoms/BaseButton.vue";
 import { PseudoFile } from "~/types/PseudoFile";
 import { downloadAsZip } from "~/utils/downloadAsZip";
 
@@ -23,7 +23,7 @@ interface State {
 
 export default defineComponent({
 	components: {
-		Button
+		BaseButton
 	},
 	props: {
 		name: {
