@@ -28,14 +28,20 @@ try {
     str = str.replace(/declare module 'g'/, "declare namespace g");
     fs.writeFileSync(output, str);
 
-    ["@akashic/playlog", "@akashic/trigger", "@akashic/pdi-types"].forEach(name => {
+    console.log("Successfully generated type definitions for akashic-engine");
+
+    // { '@akashic/xx': 'x.y.z' } -> [ ['@akashic/xx', 'x.y.x'] ]
+    const deps = Object.entries(require("../node_modules/@akashic/akashic-engine/package.json").dependencies);
+
+    deps.forEach(([name]) => {
       const ver = require(path.join(__dirname, "..", `./node_modules/${name}/package.json`)).version;
       dts.bundle({
         name: name,
         main: `node_modules/${name}/lib/index.d.ts`,
         out: path.join(__dirname, "..", "public", "types", aksVersion, `${name.split("/")[1]}.d.ts`),
-        headerText: `v${ver}\n\n`
+        headerText: `\nv${ver}\n`
       });
+      console.log(`Successfully generated type definitions for ${name}@${ver}`);
     });
   })();
 
@@ -45,14 +51,15 @@ try {
       "@akashic-extension/akashic-label",
       "@akashic-extension/akashic-box2d"
     ].forEach(name => {
-      execSync(`npm install ${name}@next --no-save`);
+      execSync(`npm install ${name}@^3 --no-save`);
       const ver = require(path.join(__dirname, "..", `node_modules/${name}/package.json`)).version;
       dts.bundle({
         name: name,
         main: `node_modules/${name}/lib/index.d.ts`,
         out: path.join(__dirname, "..", "public", "types", "extra", `${name.split("/")[1]}.d.ts`),
-        headerText: `v${ver}\n\n`
+        headerText: `\nv${ver}\n`
       });
+      console.log(`Successfully generated type definitions for ${name}@${ver}`);
     });
   })();
 } catch (e) {
