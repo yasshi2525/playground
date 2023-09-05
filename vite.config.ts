@@ -16,6 +16,16 @@ export default defineConfig({
 			"~": path.resolve(__dirname, "./src"),
 		},
 	},
+	css: {
+		modules: {
+			scopeBehaviour: "local",
+		},
+		preprocessorOptions: {
+			scss: {
+				additionalData: `@use "~/assets" as *;`,
+			},
+		},
+	},
 	define: {
 		"process.env": {},
 		__VUE_PROD_DEVTOOLS__: "false",

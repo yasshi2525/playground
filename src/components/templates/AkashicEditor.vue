@@ -127,8 +127,8 @@ const changeCurrentPseudoFile = (uri: string | null) => {
 };
 </script>
 
-<style scoped>
-@media screen and (min-width: 960px) {
+<style lang="scss" scoped>
+@include media-breakpoint-up(lg) {
 	.akashic-editor-container {
 		width: 100%;
 		height: 100%;
@@ -195,7 +195,7 @@ const changeCurrentPseudoFile = (uri: string | null) => {
 	}
 }
 
-@media screen and (max-width: 959px) {
+@include media-breakpoint-down(lg) {
 	.akashic-editor-container {
 		width: 100%;
 		height: calc(100% - 50px);

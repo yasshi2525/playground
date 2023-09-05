@@ -45,7 +45,7 @@ const reload = () => {
 };
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .game-canvas-container {
 	display: flex;
 	justify-content: center;

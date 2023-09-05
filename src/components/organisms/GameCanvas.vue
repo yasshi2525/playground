@@ -72,7 +72,7 @@ onUnmounted(() => {
 });
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .container-game-canvas {
 	display: flex;
 	justify-content: center;

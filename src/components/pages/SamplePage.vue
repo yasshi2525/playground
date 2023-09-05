@@ -101,8 +101,8 @@ watch(
 );
 </script>
 
-<style scoped>
-@media screen and (min-width: 960px) {
+<style lang="scss" scoped>
+@include media-breakpoint-up(lg) {
 	.sample-page-container {
 		width: 100%;
 		height: 100%;
@@ -155,7 +155,7 @@ watch(
 	}
 }
 
-@media screen and (max-width: 959px) {
+@include media-breakpoint-down(lg) {
 	.sample-page-container {
 		width: 100%;
 		height: 100%;

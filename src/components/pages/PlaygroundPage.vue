@@ -44,8 +44,8 @@ provide(useGameContextKey, useGameContext());
 gameConfs.fetchPseudoFilesFromUri(props.gameJsonUri);
 </script>
 
-<style scoped>
-@media screen and (min-width: 960px) {
+<style lang="scss" scoped>
+@include media-breakpoint-up(lg) {
 	.playground-page-container {
 		width: 100%;
 		height: 100%;
@@ -98,7 +98,7 @@ gameConfs.fetchPseudoFilesFromUri(props.gameJsonUri);
 	}
 }
 
-@media screen and (max-width: 959px) {
+@include media-breakpoint-down(lg) {
 	.playground-page-container {
 		width: 100%;
 		height: 100%;

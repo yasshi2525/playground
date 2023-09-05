@@ -1,8 +1,6 @@
 import { setup } from "@storybook/vue3";
 import { createMemoryHistory, createRouter } from "vue-router";
 
-import "~/assets/global.scss";
-
 const router = createRouter({
 	history: createMemoryHistory(),
 	routes: [],

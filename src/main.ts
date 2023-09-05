@@ -5,9 +5,6 @@ import { UriParameter } from "./types/UriParameter";
 import App from "~/components/pages/RootPage.vue";
 import { decode } from "~/utils/Base64";
 
-// import global style
-import "~/assets/global.scss";
-
 const router = createRouter({
 	history: createWebHashHistory(),
 	routes: [
