@@ -31,7 +31,6 @@ import { useGameJSONResolver, useGameJSONResolverKey } from "~/composables/useGa
 interface Props {
 	gameJsonUri: string;
 	name: string;
-	base64: string;
 	showDownloadButton?: boolean;
 }
 

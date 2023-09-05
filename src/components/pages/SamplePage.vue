@@ -45,7 +45,6 @@ marked.setOptions({
 interface Props {
 	gameJsonUri: string;
 	name: string;
-	base64: string;
 	autoplay?: boolean;
 	showDownloadButton?: boolean;
 }
