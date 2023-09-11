@@ -1,4 +1,4 @@
-/*v3.5.0
+/*v3.14.2
 
 */
 // Dependencies for this module:
@@ -60,6 +60,7 @@ declare module 'g/lib/Game' {
     import { Storage } from "g/lib/Storage";
     import { SurfaceAtlasSet } from "g/lib/SurfaceAtlasSet";
     import type { TickGenerationModeString } from "g/lib/TickGenerationModeString";
+    import { WeakRefKVS } from "g/lib/WeakRefKVS";
     export interface GameResetParameterObject {
             /**
                 * `Game#age` に設定する値。
@@ -94,6 +95,36 @@ declare module 'g/lib/Game' {
             "point-move": Trigger<PointMoveEvent>;
             "point-up": Trigger<PointUpEvent>;
             operation: Trigger<OperationEvent>;
+    }
+    /**
+        * Game#pushScene() のオプション
+        */
+    export interface PushSceneOption {
+            /**
+                * 現在のシーンのアセット読み込み後、任意の非同期処理を行うためのハンドラ。
+                * prepare 中にシーンスタックを操作してはいけない点に注意。
+                *
+                * 実装の都合のため、prepare を指定したシーンのロード中は画面描画が行われない。
+                * ローディングシーンの描画が重要になるような大規模なゲームの場合、開発者自身で prepare 相当の処理を行うローカルシーンを作成する必要がある。
+                */
+            prepare?: (done: () => void) => void;
+    }
+    /**
+        * Game#replaceScene() のオプション
+        */
+    export interface ReplaceSceneOption {
+            /**
+                * 現在のシーンを破棄するか否か。
+                */
+            preserveCurrent?: boolean;
+            /**
+                * 現在のシーンのアセット読み込み後、任意の非同期処理を行うためのハンドラ。
+                * prepare 中にシーンスタックを操作してはいけない点に注意。
+                *
+                * 実装の都合のため、prepare を指定したシーンのロード中は画面描画が行われない。
+                * ローディングシーンの描画が重要になるような大規模なゲームの場合、開発者自身で prepare 相当の処理を行うローカルシーンを作成する必要がある。
+                */
+            prepare?: (done: () => void) => void;
     }
     export type GameMainFunction = (g: any, args: GameMainParameterObject) => void;
     /**
@@ -164,9 +195,7 @@ declare module 'g/lib/Game' {
             /**
                 * このコンテンツに関連付けられるエンティティ。(ローカルなエンティティを除く)
                 */
-            db: {
-                    [idx: number]: E;
-            };
+            db: WeakRefKVS<E>;
             /**
                 * このコンテンツを描画するためのオブジェクト群。
                 */
@@ -408,6 +437,10 @@ declare module 'g/lib/Game' {
                 */
             skippingChanged: Trigger<boolean>;
             /**
+                * ティック消化後にfireされるTrigger。
+                */
+            onUpdate: Trigger<void>;
+            /**
                 * ゲームが早送りに状態にあるかどうか。
                 *
                 * スキップ状態であれば真、非スキップ状態であれば偽である。
@@ -523,9 +556,7 @@ declare module 'g/lib/Game' {
                 * このゲームに紐づくローカルなエンティティ (`E#local` が真のもの)
                 * @private
                 */
-            _localDb: {
-                    [id: number]: E;
-            };
+            _localDb: WeakRefKVS<E>;
             /**
                 * ローカルエンティティ用の `this._idx` 。
                 * @private
@@ -627,8 +658,9 @@ declare module 'g/lib/Game' {
                 * このメソッドの呼び出しにより、現在のシーンの `stateChanged` が引数 `"deactive"` でfireされる。
                 * その後 `scene.stateChanged` が引数 `"active"` でfireされる。
                 * @param scene 遷移後のシーン
+                * @param option 遷移時のオプション
                 */
-            pushScene(scene: Scene): void;
+            pushScene(scene: Scene, option?: PushSceneOption): void;
             /**
                 * 現在のシーンの置き換えを要求する。
                 *
@@ -643,6 +675,13 @@ declare module 'g/lib/Game' {
                 * @param preserveCurrent 真の場合、現在のシーンを破棄しない(ゲーム開発者が明示的に破棄せねばならない)。省略された場合、偽
                 */
             replaceScene(scene: Scene, preserveCurrent?: boolean): void;
+            /**
+                * 現在のシーンの置き換えを要求する。
+                *
+                * @param scene 遷移後のシーン
+                * @param option 遷移時のオプション
+                */
+            replaceScene(scene: Scene, option?: ReplaceSceneOption): void;
             /**
                 * シーンスタックから現在のシーンを取り除くことを要求する
                 *
@@ -840,6 +879,10 @@ declare module 'g/lib/Game' {
                 */
             _pushPostTickTask(fun: () => void, owner: any): void;
             /**
+                * @ignore
+                */
+            _popSceneRaw(preserveCurrent: boolean): void;
+            /**
                 * @private
                 */
             _normalizeConfiguration(gameConfiguration: GameConfiguration): GameConfiguration;
@@ -847,6 +890,14 @@ declare module 'g/lib/Game' {
                 * @private
                 */
             _setAudioPlaybackRate(playbackRate: number): void;
+            /**
+                * @private
+                */
+            _startSuppressAudio(): void;
+            /**
+                * @private
+                */
+            _endSuppressAudio(): void;
             /**
                 * @private
                 */
@@ -937,15 +988,15 @@ declare module 'g/lib' {
 }
 
 declare module 'g/lib/AssetManager' {
-    import type { AssetConfigurationMap, AudioSystemConfigurationMap, ModuleMainScriptsMap, AssetConfigurationCommonBase, ImageAssetConfigurationBase, ScriptAssetConfigurationBase, TextAssetConfigurationBase, AudioAssetConfigurationBase, VideoAssetConfigurationBase, VectorImageAssetConfigurationBase } from "@akashic/game-configuration";
-    import type { Asset, AssetLoadHandler, AudioAsset, AssetLoadError, ImageAsset, ResourceFactory, ScriptAsset, TextAsset, VideoAsset, VectorImageAsset } from "@akashic/pdi-types";
+    import type { AssetConfigurationMap, AudioSystemConfigurationMap, ModuleMainScriptsMap, AssetConfigurationCommonBase, ImageAssetConfigurationBase, ScriptAssetConfigurationBase, TextAssetConfigurationBase, AudioAssetConfigurationBase, VideoAssetConfigurationBase, VectorImageAssetConfigurationBase, BinaryAssetConfigurationBase } from "@akashic/game-configuration";
+    import type { Asset, AssetLoadHandler, AudioAsset, AssetLoadError, ImageAsset, ResourceFactory, ScriptAsset, TextAsset, VideoAsset, VectorImageAsset, BinaryAsset } from "@akashic/pdi-types";
     import type { AssetGenerationConfiguration } from "g/lib/AssetGenerationConfiguration";
     import type { AssetManagerLoadHandler } from "g/lib/AssetManagerLoadHandler";
     import type { AudioSystem } from "g/lib/AudioSystem";
     import type { AudioSystemManager } from "g/lib/AudioSystemManager";
     import type { DynamicAssetConfiguration } from "g/lib/DynamicAssetConfiguration";
-    export type OneOfAsset = AudioAsset | ImageAsset | ScriptAsset | TextAsset | VideoAsset | VectorImageAsset;
-    type AssetConfigurationCore = ImageAssetConfiguration | VectorImageAssetConfiguration | VideoAssetConfiguration | AudioAssetConfiguration | TextAssetConfiguration | ScriptAssetConfiguration;
+    export type OneOfAsset = AudioAsset | ImageAsset | ScriptAsset | TextAsset | VideoAsset | VectorImageAsset | BinaryAsset;
+    type AssetConfigurationCore = ImageAssetConfiguration | VectorImageAssetConfiguration | VideoAssetConfiguration | AudioAssetConfiguration | TextAssetConfiguration | ScriptAssetConfiguration | BinaryAssetConfiguration;
     type UnneededKeysForAsset = "path" | "virtualPath" | "global";
     interface ImageAssetConfiguration extends Omit<AssetConfigurationCommonBase, "type">, Omit<ImageAssetConfigurationBase, UnneededKeysForAsset> {
     }
@@ -958,6 +1009,8 @@ declare module 'g/lib/AssetManager' {
     interface TextAssetConfiguration extends Omit<AssetConfigurationCommonBase, "type">, Omit<TextAssetConfigurationBase, UnneededKeysForAsset> {
     }
     interface ScriptAssetConfiguration extends Omit<AssetConfigurationCommonBase, "type">, Omit<ScriptAssetConfigurationBase, UnneededKeysForAsset> {
+    }
+    interface BinaryAssetConfiguration extends Omit<BinaryAssetConfigurationBase, "type">, Omit<BinaryAssetConfigurationBase, UnneededKeysForAsset> {
     }
     type AssetIdOrConf = string | DynamicAssetConfiguration | AssetGenerationConfiguration;
     export interface AssetManagerParameterGameLike {
@@ -1053,6 +1106,10 @@ declare module 'g/lib/AssetManager' {
                 */
             globalAssetIds(): string[];
             /**
+                * プリロードすべきスクリプトアセットのIDを全て返す。
+                */
+            preloadScriptAssetIds(): string[];
+            /**
                 * パターンまたはフィルタに合致するパスを持つアセットIDを全て返す。
                 *
                 * 戻り値は読み込み済みでないアセットのIDを含むことに注意。
@@ -1106,14 +1163,14 @@ declare module 'g/lib/AssetManager' {
                 * @param accessorPath 取得するアセットのアクセッサパス
                 * @param type 取得するアセットのタイプ。対象のアセットと合致しない場合、エラー
                 */
-            peekLiveAssetByAccessorPath<T extends OneOfAsset>(accessorPath: string, type: string): T;
+            peekLiveAssetByAccessorPath<T extends OneOfAsset>(accessorPath: string, type: T["type"]): T;
             /**
                 * アセットIDで指定された読み込み済みのアセットを返す。
                 *
                 * @param assetId 取得するアセットのID
                 * @param type 取得するアセットのタイプ。対象のアセットと合致しない場合、エラー
                 */
-            peekLiveAssetById<T extends OneOfAsset>(assetId: string, type: string): T;
+            peekLiveAssetById<T extends OneOfAsset>(assetId: string, type: T["type"]): T;
             /**
                 * パターンまたはフィルタにマッチするパスを持つ、指定されたタイプの全読み込み済みアセットを返す。
                 *
@@ -1123,7 +1180,7 @@ declare module 'g/lib/AssetManager' {
                 * @param patternOrFilter 取得するアセットのパスパターンまたはフィルタ
                 * @param type 取得するアセットのタイプ。 null の場合、全てのタイプとして扱われる。
                 */
-            peekAllLiveAssetsByPattern<T extends OneOfAsset>(patternOrFilter: string | ((accessorPath: string) => boolean), type: string | null): T[];
+            peekAllLiveAssetsByPattern<T extends OneOfAsset>(patternOrFilter: string | ((accessorPath: string) => boolean), type: T["type"] | null): T[];
             /**
                 * @ignore
                 */
@@ -1174,7 +1231,8 @@ declare module 'g/lib/AssetManager' {
 }
 
 declare module 'g/lib/AudioSystemManager' {
-    import type { ResourceFactory } from "@akashic/pdi-types";
+    import type { AudioAsset, ResourceFactory } from "@akashic/pdi-types";
+    import type { AudioPlayContext } from "g/lib/AudioPlayContext";
     import type { AudioSystem } from "g/lib/AudioSystem";
     /**
         * `AudioSystem` の管理クラス。
@@ -1195,7 +1253,23 @@ declare module 'g/lib/AudioSystemManager' {
                 * @private
                 */
             _muted: boolean;
+            /**
+                * @private
+                */
+            _resourceFactory: ResourceFactory;
             constructor(resourceFactory: ResourceFactory);
+            /**
+                * 対象の音声アセットの AudioPlayContext を生成する。
+                *
+                * @param asset 音声アセット
+                */
+            create(asset: AudioAsset): AudioPlayContext;
+            /**
+                * 対象の音声アセットの AudioPlayContext を生成し、再生する。
+                *
+                * @param asset 音声アセット
+                */
+            play(asset: AudioAsset): AudioPlayContext;
             /**
                 * @private
                 */
@@ -1208,10 +1282,8 @@ declare module 'g/lib/AudioSystemManager' {
                 * @private
                 */
             _setPlaybackRate(rate: number): void;
-            /**
-                * @private
-                */
-            _initializeAudioSystems(resourceFactory: ResourceFactory): void;
+            _startSuppress(): void;
+            _endSuppress(): void;
             stopAll(): void;
     }
 }
@@ -1709,7 +1781,8 @@ declare module 'g/lib/Event' {
             pointerId: number;
             point: CommonOffset;
             target: T | undefined;
-            constructor(pointerId: number, target: T | undefined, point: CommonOffset, player?: Player, local?: boolean, eventFlags?: number);
+            button: number;
+            constructor(pointerId: number, target: T | undefined, point: CommonOffset, player?: Player, local?: boolean, eventFlags?: number, button?: number);
     }
     /**
         * ポインティング操作の開始を表すイベントの基底クラス。
@@ -1729,7 +1802,7 @@ declare module 'g/lib/Event' {
             type: "point-up";
             startDelta: CommonOffset;
             prevDelta: CommonOffset;
-            constructor(pointerId: number, target: T | undefined, point: CommonOffset, prevDelta: CommonOffset, startDelta: CommonOffset, player?: Player, local?: boolean, eventFlags?: number);
+            constructor(pointerId: number, target: T | undefined, point: CommonOffset, prevDelta: CommonOffset, startDelta: CommonOffset, player?: Player, local?: boolean, eventFlags?: number, button?: number);
     }
     /**
         * ポインティング操作の移動を表すイベント。
@@ -1746,7 +1819,7 @@ declare module 'g/lib/Event' {
             type: "point-move";
             startDelta: CommonOffset;
             prevDelta: CommonOffset;
-            constructor(pointerId: number, target: T | undefined, point: CommonOffset, prevDelta: CommonOffset, startDelta: CommonOffset, player?: Player, local?: boolean, eventFlags?: number);
+            constructor(pointerId: number, target: T | undefined, point: CommonOffset, prevDelta: CommonOffset, startDelta: CommonOffset, player?: Player, local?: boolean, eventFlags?: number, button?: number);
     }
     /**
         * 汎用的なメッセージを表すイベント。
@@ -1832,20 +1905,17 @@ declare module 'g/lib/EventConverter' {
     import type { Event } from "g/lib/Event";
     import type { InternalOperationPluginOperation } from "g/lib/OperationPluginOperation";
     import type { Player } from "g/lib/Player";
+    import type { WeakRefKVS } from "g/lib/WeakRefKVS";
     /**
         * @ignore
         */
-    interface EventConverterParameterObejctGameLike {
-            db: {
-                    [idx: number]: E;
-            };
-            _localDb: {
-                    [id: number]: E;
-            };
+    interface EventConverterParameterObjectGameLike {
+            db: WeakRefKVS<E>;
+            _localDb: WeakRefKVS<E>;
             _decodeOperationPluginOperation: (code: number, op: (number | string)[]) => any;
     }
-    export interface EventConverterParameterObejct {
-            game: EventConverterParameterObejctGameLike;
+    export interface EventConverterParameterObject {
+            game: EventConverterParameterObjectGameLike;
             playerId?: string;
     }
     /**
@@ -1853,12 +1923,15 @@ declare module 'g/lib/EventConverter' {
         * @ignore
         */
     export class EventConverter {
-            _game: EventConverterParameterObejctGameLike;
+            _game: EventConverterParameterObjectGameLike;
             _playerId: string | null;
             _playerTable: {
                     [key: string]: Player;
             };
-            constructor(param: EventConverterParameterObejct);
+            _pointDownButtonTable: {
+                    [key: number]: number;
+            };
+            constructor(param: EventConverterParameterObject);
             /**
                 * playlog.Eventからg.Eventへ変換する。
                 */
@@ -2113,7 +2186,7 @@ declare module 'g/lib/LocalTickModeString' {
 
 declare module 'g/lib/ModuleManager' {
     import type { Asset, ScriptAssetRuntimeValueBase } from "@akashic/pdi-types";
-    import type { AssetManager } from "g/lib/AssetManager";
+    import type { AssetManager, OneOfAsset } from "g/lib/AssetManager";
     import { Module } from "g/lib/Module";
     import type { RequireCacheable } from "g/lib/RequireCacheable";
     /**
@@ -2177,8 +2250,8 @@ declare module 'g/lib/ModuleManager' {
                 * @param liveAssetPathTable パス文字列のプロパティに対応するアセットを格納したオブジェクト
                 */
             _findAssetByPathAsFile(resolvedPath: string, liveAssetPathTable: {
-                    [key: string]: Asset;
-            }): Asset | undefined;
+                    [key: string]: OneOfAsset;
+            }): OneOfAsset | undefined;
             /**
                 * 与えられたパス文字列がディレクトリパスであると仮定して、対応するアセットを探す。
                 * 見つかった場合そのアセットを、そうでない場合 `undefined` を返す。
@@ -2191,8 +2264,8 @@ declare module 'g/lib/ModuleManager' {
                 * @param liveAssetPathTable パス文字列のプロパティに対応するアセットを格納したオブジェクト
                 */
             _findAssetByPathAsDirectory(resolvedPath: string, liveAssetPathTable: {
-                    [key: string]: Asset;
-            }): Asset | undefined;
+                    [key: string]: OneOfAsset;
+            }): OneOfAsset | undefined;
             /**
                 * 与えられたパス文字列がファイルパスであると仮定して、対応するアセットの絶対パスを解決する。
                 * アセットが存在した場合はそのパスを、そうでない場合 `null` を返す。
@@ -2217,7 +2290,7 @@ declare module 'g/lib/ModuleManager' {
                 * @param liveAssetPathTable パス文字列のプロパティに対応するアセットを格納したオブジェクト
                 */
             _resolveAbsolutePathAsDirectory(resolvedPath: string, liveAssetPathTable: {
-                    [key: string]: Asset;
+                    [key: string]: OneOfAsset;
             }): string | null;
     }
 }
@@ -2361,6 +2434,10 @@ declare module 'g/lib/PointEventResolver' {
                 * プレイヤーID
                 */
             playerId: string;
+            /**
+                * 同時にポイント可能な上限
+                */
+            maxPoints?: number;
     }
     /**
         * PlatformPointEventからg.Eventへの変換機構。
@@ -2377,8 +2454,9 @@ declare module 'g/lib/PointEventResolver' {
     export class PointEventResolver {
             _sourceResolver: PointSourceResolver;
             _playerId: string;
+            _maxPoints: number | null;
             constructor(param: PointEventResolverParameterObject);
-            pointDown(e: PlatformPointEvent): pl.PointDownEvent;
+            pointDown(e: PlatformPointEvent): pl.PointDownEvent | null;
             pointMove(e: PlatformPointEvent): pl.PointMoveEvent | null;
             pointUp(e: PlatformPointEvent): pl.PointUpEvent | null;
     }
@@ -2512,6 +2590,13 @@ declare module 'g/lib/Scene' {
                 * またこのシーンへの遷移直後、一度だけこの値に関わらずティックが生成される。
                 */
             tickGenerationMode?: TickGenerationModeString;
+            /**
+                * シーンスタック上のこのシーンが描画される時、それに先んじてこのシーンの直下のシーンを描画するかどうか。
+                * このシーン自体は `seethrough` の値に関わらず常に描画されることに注意。
+                * ただし `seethrough` が true の時でもこのシーン以外の onUpdate は実行されない。そのため下のシーンの描画内容も更新されない。この挙動は実験的なものであり、将来的に変更されうる。
+                * @default false
+                */
+            seethrough?: boolean;
     }
     /**
         * そのSceneの状態を表す列挙子。
@@ -2587,6 +2672,12 @@ declare module 'g/lib/Scene' {
                 * シーンの識別用の名前。
                 */
             name: string | undefined;
+            /**
+                * シーンスタック上のこのシーンが描画される時、それに先んじてこのシーンの直下のシーンを描画するかどうか。
+                * このシーン自体は `seethrough` の値に関わらず常に描画されることに注意。
+                * ただし `seethrough` が true の時でもこのシーン以外の onUpdate は実行されない。そのため下のシーンの描画内容も更新されない。この挙動は実験的なものであり、将来的に変更されうる。
+                */
+            seethrough: boolean;
             /**
                 * 時間経過イベント。本イベントの一度のfireにつき、常に1フレーム分の時間経過が起こる。
                 */
@@ -2735,6 +2826,12 @@ declare module 'g/lib/Scene' {
                 */
             operation: Trigger<OperationEvent>;
             /**
+                * ゲーム開発者向けのコンテナ。
+                *
+                * この値はゲームエンジンのロジックからは使用されず、ゲーム開発者は任意の目的に使用してよい。
+                */
+            vars: any;
+            /**
                 * @private
                 */
             _storageLoader: StorageLoader | undefined;
@@ -2795,6 +2892,10 @@ declare module 'g/lib/Scene' {
                 */
             _assetHolders: AssetHolder<SceneRequestAssetHandler>[];
             /**
+                * @private
+                */
+            _waitingPrepare: ((done: () => void) => void) | undefined;
+            /**
                 * 各種パラメータを指定して `Scene` のインスタンスを生成する。
                 * @param param 初期化に用いるパラメータのオブジェクト
                 */
@@ -2834,6 +2935,8 @@ declare module 'g/lib/Scene' {
             createTimer(interval: number): Timer;
             /**
                 * Timerを削除する。
+                * `Scene#createTimer()`と同様に、通常はゲーム開発者がこのメソッドを呼び出す必要はない。
+                * このメソッドを利用する場合、メソッド実行前に対象のTimerのonElapseに登録したハンドラを全て削除しておく必要がある。
                 * @param timer 削除するTimer
                 */
             deleteTimer(timer: Timer): void;
@@ -3489,6 +3592,33 @@ declare module 'g/lib/TickGenerationModeString' {
     export type TickGenerationModeString = "by-clock" | "manual";
 }
 
+declare module 'g/lib/WeakRefKVS' {
+    interface WeakRefLike<T extends object> {
+            deref(): T | undefined;
+    }
+    /**
+        * 対象の値を弱参照として保持する Key-Value 型データストア。
+        * 通常、ゲーム開発者はこのクラスを利用する必要はない。
+        */
+    export class WeakRefKVS<T extends object> {
+            _weakRefClass: any;
+            _refMap: {
+                    [key: string]: WeakRefLike<T>;
+            };
+            set(key: string | number, value: T): void;
+            get(key: string | number): T | undefined;
+            has(key: string | number): boolean;
+            delete(key: string | number): void;
+            keys(): string[];
+            clear(): void;
+            /**
+                * 参照されなくなった target のキーをマップから削除する。
+                */
+            clean(): void;
+    }
+    export {};
+}
+
 declare module 'g/lib/index.common' {
     export * from "@akashic/game-configuration";
     export * from "@akashic/trigger";
@@ -3498,7 +3628,6 @@ declare module 'g/lib/index.common' {
     export { Module } from "g/lib/Module";
     export { ShaderProgram } from "g/lib/ShaderProgram";
     export { VideoSystem } from "g/lib/VideoSystem";
-    export * from "g/lib/AudioSystem";
     export * from "g/lib/entities/CacheableE";
     export * from "g/lib/entities/E";
     export * from "g/lib/entities/FilledRect";
@@ -3512,7 +3641,10 @@ declare module 'g/lib/index.common' {
     export * from "g/lib/AssetLoadFailureInfo";
     export * from "g/lib/AssetManager";
     export * from "g/lib/AssetManagerLoadHandler";
+    export * from "g/lib/AudioPlayContext";
+    export * from "g/lib/AudioSystem";
     export * from "g/lib/AudioSystemManager";
+    export * from "g/lib/AudioUtil";
     export * from "g/lib/BitmapFont";
     export * from "g/lib/Camera";
     export * from "g/lib/Camera2D";
@@ -3568,6 +3700,7 @@ declare module 'g/lib/index.common' {
     export * from "g/lib/TimerManager";
     export * from "g/lib/Util";
     export * from "g/lib/VideoSystem";
+    export * from "g/lib/WeakRefKVS";
     export * from "g/lib/Xorshift";
     export * from "g/lib/XorshiftRandomGenerator";
     export * from "g/lib/Scene";
@@ -3622,6 +3755,8 @@ declare module 'g/lib/AssetManagerLoadHandler' {
 
 declare module 'g/lib/AudioSystem' {
     import type { AudioAsset, AudioPlayer, AudioPlayerEvent, ResourceFactory, AudioSystem as PdiAudioSystem } from "@akashic/pdi-types";
+    import { AudioPlayContext } from "g/lib/AudioPlayContext";
+    import { WeakRefKVS } from "g/lib/WeakRefKVS";
     export interface AudioSystemParameterObject {
             /**
                 * オーディオシステムのID
@@ -3670,10 +3805,26 @@ declare module 'g/lib/AudioSystem' {
                 * @private
                 */
             _explicitMuted: boolean;
+            /**
+                * @private
+                */
+            _contextMap: WeakRefKVS<AudioPlayContext>;
+            /**
+                * @private
+                */
+            _contextCount: number;
+            /**
+                * `this._contextMap` から不要な参照を削除する頻度。
+                * 10 を指定した場合 `AudioPlayContext` を 10 回生成する度に参照の削除が行われる。
+                * @private
+                */
+            abstract _contentMapCleaningFrequency: number;
             get volume(): number;
             set volume(value: number);
             constructor(param: AudioSystemParameterObject);
-            abstract stopAll(): void;
+            play(asset: AudioAsset): AudioPlayContext;
+            create(asset: AudioAsset): AudioPlayContext;
+            stopAll(): void;
             abstract findPlayers(asset: AudioAsset): AudioPlayer[];
             abstract createPlayer(): AudioPlayer;
             requestDestroy(asset: AudioAsset): void;
@@ -3707,6 +3858,18 @@ declare module 'g/lib/AudioSystem' {
             /**
                 * @private
                 */
+            _generateAudioPlayContextId(): string;
+            /**
+                * @private
+                */
+            _startSuppress(): void;
+            /**
+                * @private
+                */
+            _endSuppress(): void;
+            /**
+                * @private
+                */
             abstract _onVolumeChanged(): void;
             /**
                 * @private
@@ -3722,6 +3885,10 @@ declare module 'g/lib/AudioSystem' {
                 * @private
                 */
             _player: AudioPlayer | undefined;
+            /**
+                * @private
+                */
+            _contentMapCleaningFrequency: number;
             get player(): AudioPlayer;
             set player(v: AudioPlayer);
             constructor(param: AudioSystemParameterObject);
@@ -3755,6 +3922,10 @@ declare module 'g/lib/AudioSystem' {
     }
     export class SoundAudioSystem extends AudioSystem {
             players: AudioPlayer[];
+            /**
+                * @private
+                */
+            _contentMapCleaningFrequency: number;
             constructor(param: AudioSystemParameterObject);
             createPlayer(): AudioPlayer;
             findPlayers(asset: AudioAsset): AudioPlayer[];
@@ -3787,8 +3958,8 @@ declare module 'g/lib/AudioSystem' {
 }
 
 declare module 'g/lib/DynamicAssetConfiguration' {
-    import type { AssetConfigurationCommonBase, AudioAssetConfigurationBase, ImageAssetConfigurationBase, ScriptAssetConfigurationBase, TextAssetConfigurationBase, VectorImageAssetConfigurationBase, VideoAssetConfigurationBase } from "@akashic/game-configuration";
-    export type DynamicAssetConfiguration = DynamicAudioAssetConfigurationBase | DynamicImageAssetConfigurationBase | DynamicVectorImageAssetConfigurationBase | DynamicTextAssetConfigurationBase | DynamicScriptAssetConfigurationBase | DynamicVideoAssetConfigurationBase;
+    import type { AssetConfigurationCommonBase, AudioAssetConfigurationBase, BinaryAssetConfigurationBase, ImageAssetConfigurationBase, ScriptAssetConfigurationBase, TextAssetConfigurationBase, VectorImageAssetConfigurationBase, VideoAssetConfigurationBase } from "@akashic/game-configuration";
+    export type DynamicAssetConfiguration = DynamicAudioAssetConfigurationBase | DynamicImageAssetConfigurationBase | DynamicVectorImageAssetConfigurationBase | DynamicTextAssetConfigurationBase | DynamicScriptAssetConfigurationBase | DynamicVideoAssetConfigurationBase | DynamicBinaryAssetConfigurationBase;
     /**
         * (実行時に定義される)Assetの設定を表すインターフェース。
         * game.jsonに記述される値の型ではない点に注意。
@@ -3834,8 +4005,81 @@ declare module 'g/lib/DynamicAssetConfiguration' {
         */
     export interface DynamicScriptAssetConfigurationBase extends Omit<DynamicAssetConfigurationBase, "type">, Omit<ScriptAssetConfigurationBase, UnneededKeysForDynamicAsset> {
     }
+    /**
+        * BinaryAssetの設定。
+        */
+    export interface DynamicBinaryAssetConfigurationBase extends Omit<DynamicAssetConfigurationBase, "type">, Omit<BinaryAssetConfigurationBase, UnneededKeysForDynamicAsset> {
+    }
     type UnneededKeysForDynamicAsset = "path" | "virtualPath" | "global";
     export {};
+}
+
+declare module 'g/lib/AudioPlayContext' {
+    import type { AudioAsset, AudioPlayer, AudioSystem, ResourceFactory } from "@akashic/pdi-types";
+    import { Trigger } from "@akashic/trigger";
+    export interface AudioPlayContextPlayEvent {
+    }
+    export interface AudioPlayContextStopEvent {
+    }
+    export interface AudioPlayContextParameterObject {
+            id: string;
+            resourceFactory: ResourceFactory;
+            system: AudioSystem;
+            systemId: string;
+            asset: AudioAsset;
+            volume?: number;
+    }
+    export class AudioPlayContext {
+            /**
+                * この AudioPlayContext に紐づく音声アセット。
+                */
+            readonly asset: AudioAsset;
+            /**
+                * `play()` が呼び出された時に通知される `Trigger` 。
+                */
+            readonly onPlay: Trigger<AudioPlayContextPlayEvent>;
+            /**
+                * `stop()` が呼び出された時に通知される `Trigger` 。
+                */
+            readonly onStop: Trigger<AudioPlayContextStopEvent>;
+            /**
+                * @private
+                */
+            _system: AudioSystem;
+            /**
+                * @private
+                */
+            _resourceFactory: ResourceFactory;
+            /**
+                * @private
+                */
+            _player: AudioPlayer;
+            /**
+                * @private
+                */
+            _volume: number;
+            /**
+                * @private
+                */
+            _id: string;
+            /**
+                * @private
+                */
+            _systemId: string;
+            get volume(): number;
+            constructor(param: AudioPlayContextParameterObject);
+            play(): void;
+            stop(): void;
+            changeVolume(vol: number): void;
+            /**
+                * @private
+                */
+            _startSuppress(): void;
+            /**
+                * @private
+                */
+            _endSuppress(): void;
+    }
 }
 
 declare module 'g/lib/EntityStateFlags' {
@@ -4467,7 +4711,7 @@ declare module 'g/lib/OperationPluginStatic' {
 }
 
 declare module 'g/lib/AssetAccessor' {
-    import type { AudioAsset, ImageAsset, ScriptAsset, TextAsset, VectorImageAsset } from "@akashic/pdi-types";
+    import type { AudioAsset, BinaryAsset, ImageAsset, ScriptAsset, TextAsset, VectorImageAsset } from "@akashic/pdi-types";
     import type { AssetManager } from "g/lib/AssetManager";
     /**
         * アセットへのアクセスを提供するアクセッサ群。
@@ -4551,6 +4795,24 @@ declare module 'g/lib/AssetAccessor' {
                 */
             getVectorImage(path: string): VectorImageAsset;
             /**
+                * パスから読み込み済みのバイナリアセット（現在のシーンで読み込んだ、またはグローバルなアセット）を取得する。
+                *
+                * パスはgame.jsonのあるディレクトリをルート (`/`) とする、 `/` 区切りの絶対パスでなければならない。
+                * 当該のバイナリアセットが読み込まれていない場合、エラー。
+                *
+                * @param path 取得するバイナリアセットのパス
+                */
+            getBinary(path: string): BinaryAsset;
+            /**
+                * パスから読み込み済みのバイナリアセット（現在のシーンで読み込んだ、またはグローバルなアセット）を取得し、その内容のバイト配列を返す。
+                *
+                * パスはgame.jsonのあるディレクトリをルート (`/`) とする、 `/` 区切りの絶対パスでなければならない。
+                * 当該のバイナリアセットが読み込まれていない場合、エラー。
+                *
+                * @param path 内容のバイト配列を取得するバイナリアセットのパス
+                */
+            getBinaryData(path: string): ArrayBuffer;
+            /**
                 * 与えられたパターンまたはフィルタにマッチするパスを持つ、読み込み済みの全画像アセット（現在のシーンで読み込んだ、またはグローバルなアセット）を取得する。
                 *
                 * ここでパスはgame.jsonのあるディレクトリをルート (`/`) とする、 `/` 区切りの絶対パスである。
@@ -4594,6 +4856,13 @@ declare module 'g/lib/AssetAccessor' {
                 * @param patternOrFilter 取得するベクタ画像アセットのパスパターンまたはフィルタ。省略した場合、読み込み済みの全て
                 */
             getAllVectorImages(patternOrFilter?: string | ((path: string) => boolean)): VectorImageAsset[];
+            /**
+                * 与えられたパターンまたはフィルタにマッチするパスを持つ、読み込み済みのバイナリアセット（現在のシーンで読み込んだ、またはグローバルなアセット）を取得する。
+                * 引数の仕様については `AssetAccessor#getAllImages()` の仕様を参照のこと。
+                *
+                * @param patternOrFilter 取得するベクタ画像アセットのパスパターンまたはフィルタ。省略した場合、読み込み済みの全て
+                */
+            getAllBinaries(patternOrFilter?: string | ((path: string) => boolean)): BinaryAsset[];
             /**
                 * アセットIDから読み込み済みの画像アセット（現在のシーンで読み込んだ、またはグローバルなアセット）を取得する。
                 * 当該の画像アセットが読み込まれていない場合、エラー。
@@ -4643,6 +4912,20 @@ declare module 'g/lib/AssetAccessor' {
                 * @param assetId 取得するベクタ画像アセットのID
                 */
             getVectorImageById(assetId: string): VectorImageAsset;
+            /**
+                * アセットIDから読み込み済みのバイナリアセット（現在のシーンで読み込んだ、またはグローバルなアセット）を取得する。
+                * 当該のバイナリアセットが読み込まれていない場合、エラー。
+                *
+                * @param assetId 取得するバイナリアセットのID
+                */
+            getBinaryById(assetId: string): BinaryAsset;
+            /**
+                * アセットIDから読み込み済みのバイナリアセット（現在のシーンで読み込んだ、またはグローバルなアセット）を取得し、その内容のバイト配列を返す。
+                * 当該のバイナリアセットが読み込まれていない場合、エラー。
+                *
+                * @param assetId 取得するバイナリアセットのID
+                */
+            getBinaryDataById(assetId: string): ArrayBuffer;
     }
 }
 
@@ -5733,6 +6016,77 @@ declare module 'g/lib/entities/Sprite' {
     }
 }
 
+declare module 'g/lib/AudioUtil' {
+    import type { AudioPlayContext } from "g/lib/AudioPlayContext";
+    import type { Game } from "g/lib/Game";
+    /**
+        * イージング関数。
+        *
+        * @param t 経過時間
+        * @param b 開始位置
+        * @param c 差分
+        * @param d 所要時間
+        */
+    export type EasingFunction = (t: number, b: number, c: number, d: number) => number;
+    export type AudioTransitionContext = {
+            /**
+                * 遷移を即座に完了する。
+                * 音量は遷移完了後の値となる。
+                */
+            complete: () => void;
+            /**
+                * 遷移を取り消す。音量はこの関数を実行した時点での値となる。
+                * @param revert 音量を遷移実行前まで戻すかどうか。省略時は `false` 。
+                */
+            cancel: (revert?: boolean) => void;
+    };
+    /**
+        * Audio に関連するユーティリティ。
+        */
+    export module AudioUtil {
+            /**
+                * 音声をフェードインさせる。
+                *
+                * @param game 対象の `Game`。
+                * @param context 対象の `AudioPlayContext` 。
+                * @param duration フェードインの長さ (ms)。
+                * @param to フェードイン後の音量。0 未満または 1 より大きい値を指定した場合の挙動は不定である。省略時は `1` 。
+                * @param easing イージング関数。省略時は linear 。
+                */
+            function fadeIn(game: Game, context: AudioPlayContext, duration: number, to?: number, easing?: EasingFunction): AudioTransitionContext;
+            /**
+                * 音声をフェードアウトさせる。
+                *
+                * @param game 対象の `Game`。
+                * @param context 対象の `AudioPlayContext` 。
+                * @param duration フェードアウトの長さ (ms)。
+                * @param easing イージング関数。省略時は linear が指定される。
+                */
+            function fadeOut(game: Game, context: AudioPlayContext, duration: number, easing?: EasingFunction): AudioTransitionContext;
+            /**
+                * 二つの音声をクロスフェードさせる。
+                *
+                * @param game 対象の `Game`。
+                * @param fadeInContext フェードイン対象の `AudioPlayContext` 。
+                * @param fadeOutContext フェードアウト対象の `AudioPlayContext` 。
+                * @param duration クロスフェードの長さ (ms)。
+                * @param to クロスフェード後の音量。0 未満または 1 より大きい値を指定した場合の挙動は不定。省略時は `1` 。
+                * @param easing イージング関数。フェードインとフェードアウトで共通であることに注意。省略時は linear が指定される。
+                */
+            function crossFade(game: Game, fadeInContext: AudioPlayContext, fadeOutContext: AudioPlayContext, duration: number, to?: number, easing?: EasingFunction): AudioTransitionContext;
+            /**
+                * 音量を指定のイージングで遷移させる。
+                *
+                * @param game 対象の `Game`。
+                * @param context 対象の `AudioPlayContext` 。
+                * @param duration 遷移の長さ (ms)。
+                * @param to 遷移後の音量。0 未満または 1 より大きい値を指定した場合の挙動は不定。
+                * @param easing イージング関数。省略時は linear が指定される。
+                */
+            function transitionVolume(game: Game, context: AudioPlayContext, duration: number, to: number, easing?: EasingFunction): AudioTransitionContext;
+    }
+}
+
 declare module 'g/lib/BitmapFont' {
     import type { GlyphArea, Glyph, ImageAsset, Surface } from "@akashic/pdi-types";
     import { Font } from "g/lib/Font";
@@ -5794,7 +6148,6 @@ declare module 'g/lib/BitmapFont' {
                     [key: string]: GlyphArea;
             };
             missingGlyph: GlyphArea | undefined;
-            size: number;
             /**
                 * 各種パラメータを指定して `BitmapFont` のインスタンスを生成する。
                 * @param param `BitmapFont` に設定するパラメータ
@@ -6263,7 +6616,7 @@ declare module 'g/lib/EventIndex' {
       * インデックスのハードコーディングを避けるため、ここで const enum で名前を与えることにする。
       *
       * 本当はこのファイルの内容は playlog に移管すべきだが、
-      * playlog に存在しない `Local` のフィールドを使うため akashic-engine 側で扱う。
+      * playlog に存在しない `Local` や一部の `Button` のフィールドを使うため akashic-engine 側で扱う。
       *
       */
     export module EventIndex {
@@ -6326,7 +6679,8 @@ declare module 'g/lib/EventIndex' {
             X = 4,
             Y = 5,
             EntityId = 6,
-            Local = 7
+            Button = 7,
+            Local = 8
         }
         const enum PointMove {
             Code = 0,
@@ -6641,7 +6995,7 @@ declare module 'g/lib/SurfaceEffector' {
 }
 
 declare module 'g/lib/SurfaceUtil' {
-    import type { CommonRect, ImageAsset, Surface } from "@akashic/pdi-types";
+    import type { CommonRect, ImageAsset, Renderer, Surface } from "@akashic/pdi-types";
     /**
         * Surface に関連するユーティリティ。
         */
@@ -6695,6 +7049,20 @@ declare module 'g/lib/SurfaceUtil' {
                 * @param borderWidth 上下左右の「拡大しない」領域の大きさ。すべて同じ値なら数値一つを渡すことができる。省略された場合、 `4`
                 */
             function drawNinePatch(destSurface: Surface, srcSurface: Surface, borderWidth?: CommonRect | number): void;
+            /**
+                * 対象の `Renderer` にナインパッチ処理された `Surface` を描画する。
+                *
+                * 開発者は以下のような状況でこの関数を利用すべきである。
+                * * E を継承した独自の Entity を renderSelf() メソッドで描画する場合。この場合描画先の Surface が不明なので drawNinePatch() よりもこの関数の方が適している。
+                * * Surface全体ではなく部分的に描画したい場合。drawNinePatch() では Surface 全体の描画にしか対応していないため。
+                *
+                * @param renderer 描画先 `Renderer`
+                * @param width 描画先の横幅
+                * @param height 描画先の縦幅
+                * @param surface 描画元 `Surface`
+                * @param borderWidth 上下左右の「拡大しない」領域の大きさ。すべて同じ値なら数値一つを渡すことができる。省略された場合、 `4`
+                */
+            function renderNinePatch(renderer: Renderer, width: number, height: number, surface: Surface, borderWidth?: CommonRect | number): void;
     }
 }
 
@@ -6793,6 +7161,13 @@ declare module 'g/lib/Util' {
                     [key: number]: string;
             }, val: T): U;
             /**
+                * 数値を範囲内［min, max］に丸める
+                * @param num 丸める値
+                * @param min 値の下限
+                * @param max 値の上限
+                */
+            function clamp(num: number, min: number, max: number): number;
+            /**
                 * CompositeOperation を CompositeOperationString に読み替えるテーブル。
                 * @deprecated 非推奨である。非推奨の機能との互換性のために存在する。ゲーム開発者が使用すべきではない。
                 */
@@ -6805,9 +7180,9 @@ declare module 'g/lib/Util' {
 declare module 'g/lib/Xorshift' {
     export class Xorshift {
             static deserialize(ser: XorshiftSerialization): Xorshift;
-            constructor(seed: number);
+            constructor(seed: number | [number, number, number, number]);
             initState(seed: number): void;
-            randomInt(): number[];
+            randomInt(): [number, number];
             random(): number;
             nextInt(min: number, sup: number): number;
             serialize(): XorshiftSerialization;

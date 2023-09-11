@@ -1,5 +1,5 @@
-/*v3.1.0
-
+/*
+v3.2.0
 */
 
 declare module '@akashic/playlog' {
@@ -9,8 +9,8 @@ declare module '@akashic/playlog' {
 }
 
 declare module '@akashic/playlog/Tick' {
-    import * as Event from "@akashic/playlog/Event";
-    import { StorageData } from "@akashic/playlog/StorageData";
+    import type * as Event from "@akashic/playlog/Event";
+    import type { StorageData } from "@akashic/playlog/StorageData";
     export interface Tick extends Array<any> {
         [index: number]: any;
         0: number;
@@ -36,7 +36,7 @@ declare module '@akashic/playlog/Tick' {
 }
 
 declare module '@akashic/playlog/Event' {
-    import * as storage from "@akashic/playlog/StorageData";
+    import type * as storage from "@akashic/playlog/StorageData";
     export const enum EventCode {
         Join = 0,
         Leave = 1,
@@ -116,6 +116,7 @@ declare module '@akashic/playlog/Event' {
         4: number;
         5: number;
         6?: number;
+        7?: number;
     }
     export const enum PointDownEventIndex {
         Code = 0,
@@ -124,7 +125,8 @@ declare module '@akashic/playlog/Event' {
         PointerId = 3,
         X = 4,
         Y = 5,
-        EntityId = 6
+        EntityId = 6,
+        Button = 7
     }
     export interface PointMoveEvent extends Event {
         3: number;

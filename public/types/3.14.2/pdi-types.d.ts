@@ -1,5 +1,5 @@
-/*v1.1.1
-
+/*
+v1.11.1
 */
 // Dependencies for this module:
 //   ../../../../@akashic/trigger
@@ -29,6 +29,9 @@ declare module '@akashic/pdi-types' {
     export * from "@akashic/pdi-types/asset/video/VideoPlayer";
     export * from "@akashic/pdi-types/asset/video/VideoSystem";
     export * from "@akashic/pdi-types/asset/video/VideoAsset";
+    export * from "@akashic/pdi-types/asset/vector-image/VectorImageAsset";
+    export * from "@akashic/pdi-types/asset/vector-image/VectorImageAssetHint";
+    export * from "@akashic/pdi-types/asset/binary/BinaryAsset";
     export * from "@akashic/pdi-types/asset/Asset";
     export * from "@akashic/pdi-types/asset/AssetLoadErrorType";
     export * from "@akashic/pdi-types/font/FontWeightString";
@@ -210,7 +213,7 @@ declare module '@akashic/pdi-types/surface/CompositeOperationString' {
 }
 
 declare module '@akashic/pdi-types/surface/ImageData' {
-    import { CommonSize } from "@akashic/pdi-types/commons";
+    import type { CommonSize } from "@akashic/pdi-types/commons";
     /**
         * 描画領域のピクセル情報を表すインターフェース。
         */
@@ -232,10 +235,10 @@ declare module '@akashic/pdi-types/surface/ImageData' {
 }
 
 declare module '@akashic/pdi-types/surface/Renderer' {
-    import { CompositeOperationString } from "@akashic/pdi-types/surface/CompositeOperationString";
-    import { ImageData } from "@akashic/pdi-types/surface/ImageData";
-    import { ShaderProgram } from "@akashic/pdi-types/surface/ShaderProgram";
-    import { Surface } from "@akashic/pdi-types/surface/Surface";
+    import type { CompositeOperationString } from "@akashic/pdi-types/surface/CompositeOperationString";
+    import type { ImageData } from "@akashic/pdi-types/surface/ImageData";
+    import type { ShaderProgram } from "@akashic/pdi-types/surface/ShaderProgram";
+    import type { Surface } from "@akashic/pdi-types/surface/Surface";
     /**
         * ゲームの描画を行うクラス。
         *
@@ -293,7 +296,7 @@ declare module '@akashic/pdi-types/surface/Renderer' {
 }
 
 declare module '@akashic/pdi-types/surface/ShaderProgram' {
-    import { ShaderUniform } from "@akashic/pdi-types/surface/ShaderUniform";
+    import type { ShaderUniform } from "@akashic/pdi-types/surface/ShaderUniform";
     export interface ShaderProgram {
             /**
                 * フラグメントシェーダの文字列。
@@ -349,8 +352,8 @@ declare module '@akashic/pdi-types/surface/ShaderUniform' {
 }
 
 declare module '@akashic/pdi-types/surface/Surface' {
-    import { CommonSize } from "@akashic/pdi-types/commons";
-    import { Renderer } from "@akashic/pdi-types/surface/Renderer";
+    import type { CommonSize } from "@akashic/pdi-types/commons";
+    import type { Renderer } from "@akashic/pdi-types/surface/Renderer";
     /**
         * 描画領域を表すインターフェース。
         */
@@ -391,10 +394,10 @@ declare module '@akashic/pdi-types/surface/Surface' {
 }
 
 declare module '@akashic/pdi-types/asset/audio/AudioAsset' {
-    import { Asset } from "@akashic/pdi-types/asset/Asset";
-    import { AudioAssetHint } from "@akashic/pdi-types/asset/audio/AudioAssetHint";
-    import { AudioPlayer } from "@akashic/pdi-types/asset/audio/AudioPlayer";
-    import { AudioSystem } from "@akashic/pdi-types/asset/audio/AudioSystem";
+    import type { Asset } from "@akashic/pdi-types/asset/Asset";
+    import type { AudioAssetHint } from "@akashic/pdi-types/asset/audio/AudioAssetHint";
+    import type { AudioPlayer } from "@akashic/pdi-types/asset/audio/AudioPlayer";
+    import type { AudioSystem } from "@akashic/pdi-types/asset/audio/AudioSystem";
     /**
         * 音リソースを表すインターフェース。
         * 本クラスのインスタンスをゲーム開発者が直接生成することはない。
@@ -406,9 +409,25 @@ declare module '@akashic/pdi-types/asset/audio/AudioAsset' {
     export interface AudioAsset extends Asset {
             type: "audio";
             data: any;
+            /**
+                * 再生時間。単位はミリ秒。
+                * play() は offset からこの時間分再生する。
+                */
             duration: number;
+            /**
+                * ループ再生するか。
+                * この値は参照のためにのみ公開されている。ゲーム開発者はこの値を直接変更してはならない。
+                */
             loop: boolean;
+            /**
+                * ヒント情報。
+                */
             hint: AudioAssetHint;
+            /**
+                * 再生開始位置。単位はミリ秒。
+                * この値は参照のためにのみ公開されている。ゲーム開発者はこの値を直接変更してはならない。
+                */
+            offset: number | undefined;
             /**
                 * @ignore
                 */
@@ -420,8 +439,8 @@ declare module '@akashic/pdi-types/asset/audio/AudioAsset' {
 }
 
 declare module '@akashic/pdi-types/asset/audio/AudioPlayer' {
-    import { Trigger } from "@akashic/trigger";
-    import { AudioAsset } from "@akashic/pdi-types/asset/audio/AudioAsset";
+    import type { Trigger } from "@akashic/trigger";
+    import type { AudioAsset } from "@akashic/pdi-types/asset/audio/AudioAsset";
     export interface AudioPlayerEvent {
             player: AudioPlayer;
             audio: AudioAsset;
@@ -515,8 +534,8 @@ declare module '@akashic/pdi-types/asset/audio/AudioPlayer' {
 }
 
 declare module '@akashic/pdi-types/asset/audio/AudioSystem' {
-    import { AudioAsset } from "@akashic/pdi-types/asset/audio/AudioAsset";
-    import { AudioPlayer } from "@akashic/pdi-types/asset/audio/AudioPlayer";
+    import type { AudioAsset } from "@akashic/pdi-types/asset/audio/AudioAsset";
+    import type { AudioPlayer } from "@akashic/pdi-types/asset/audio/AudioPlayer";
     export interface AudioSystem {
             id: string;
             volume: number;
@@ -545,10 +564,22 @@ declare module '@akashic/pdi-types/asset/audio/AudioSystem' {
 
 declare module '@akashic/pdi-types/asset/audio/AudioAssetHint' {
     /**
-      * AudioSystemの設定を表すインターフェース。
-      */
+        * AudioAsset のヒント情報を表すインターフェース。
+        */
     export interface AudioAssetHint {
-        streaming?: boolean;
+            /**
+                * ストリーミング再生が適しているアセットであるか否か。
+                * 指定されなかった場合、 `AudioAsset#loop` の値と同値として解釈される。
+                */
+            streaming?: boolean;
+            /**
+                * このアセット存在するファイルの拡張子の配列。
+                * 拡張子は "." を含む。(e.g. [".ogg", ".aac"])
+                *
+                * この値がある場合、これに含まれる拡張子のファイルが優先してロードされる。
+                * この値がない場合、各環境が再生可能なファイル形式が探される。
+                */
+            extensions?: string[];
     }
 }
 
@@ -562,9 +593,9 @@ declare module '@akashic/pdi-types/asset/image/ImageAssetHint' {
 }
 
 declare module '@akashic/pdi-types/asset/image/ImageAsset' {
-    import { Surface } from "@akashic/pdi-types/surface/Surface";
-    import { Asset } from "@akashic/pdi-types/asset/Asset";
-    import { ImageAssetHint } from "@akashic/pdi-types/asset/image/ImageAssetHint";
+    import type { Surface } from "@akashic/pdi-types/surface/Surface";
+    import type { Asset } from "@akashic/pdi-types/asset/Asset";
+    import type { ImageAssetHint } from "@akashic/pdi-types/asset/image/ImageAssetHint";
     /**
       * 画像リソースを表すインターフェース。
       * 本クラスのインスタンスをゲーム開発者が直接生成することはない。
@@ -585,8 +616,8 @@ declare module '@akashic/pdi-types/asset/image/ImageAsset' {
 }
 
 declare module '@akashic/pdi-types/asset/script/ScriptAsset' {
-    import { Asset } from "@akashic/pdi-types/asset/Asset";
-    import { ScriptAssetRuntimeValue } from "@akashic/pdi-types/asset/script/ScriptAssetRuntimeValue";
+    import type { Asset } from "@akashic/pdi-types/asset/Asset";
+    import type { ScriptAssetRuntimeValue } from "@akashic/pdi-types/asset/script/ScriptAssetRuntimeValue";
     /**
       * スクリプトリソースを表すインターフェース。
       * 本クラスのインスタンスをゲーム開発者が直接生成することはない。
@@ -599,6 +630,7 @@ declare module '@akashic/pdi-types/asset/script/ScriptAsset' {
     export interface ScriptAsset extends Asset {
         type: "script";
         script: string;
+        exports?: string[];
         execute(execEnv: ScriptAssetRuntimeValue): any;
     }
 }
@@ -647,7 +679,7 @@ declare module '@akashic/pdi-types/asset/script/Module' {
 }
 
 declare module '@akashic/pdi-types/asset/script/ScriptAssetRuntimeValue' {
-    import { Module } from "@akashic/pdi-types/asset/script/Module";
+    import type { Module } from "@akashic/pdi-types/asset/script/Module";
     /**
         * `ScriptAsset` の実行時、`g` 以下に加えられる値を定めた共通interface。
         */
@@ -686,7 +718,7 @@ declare module '@akashic/pdi-types/asset/script/ScriptAssetRuntimeValue' {
 }
 
 declare module '@akashic/pdi-types/asset/text/TextAsset' {
-    import { Asset } from "@akashic/pdi-types/asset/Asset";
+    import type { Asset } from "@akashic/pdi-types/asset/Asset";
     /**
       * 文字列リソースを表すインターフェース。
       * 本クラスのインスタンスをゲーム開発者が直接生成することはない。
@@ -702,8 +734,8 @@ declare module '@akashic/pdi-types/asset/text/TextAsset' {
 }
 
 declare module '@akashic/pdi-types/asset/video/VideoPlayer' {
-    import { Trigger } from "@akashic/trigger";
-    import { VideoAsset } from "@akashic/pdi-types/asset/video/VideoAsset";
+    import type { Trigger } from "@akashic/trigger";
+    import type { VideoAsset } from "@akashic/pdi-types/asset/video/VideoAsset";
     export interface VideoPlayerEvent {
             player: VideoPlayer;
             video: VideoAsset | undefined;
@@ -786,9 +818,9 @@ declare module '@akashic/pdi-types/asset/video/VideoSystem' {
 }
 
 declare module '@akashic/pdi-types/asset/video/VideoAsset' {
-    import { Surface } from "@akashic/pdi-types/surface/Surface";
-    import { Asset } from "@akashic/pdi-types/asset/Asset";
-    import { VideoPlayer } from "@akashic/pdi-types/asset/video/VideoPlayer";
+    import type { Surface } from "@akashic/pdi-types/surface/Surface";
+    import type { Asset } from "@akashic/pdi-types/asset/Asset";
+    import type { VideoPlayer } from "@akashic/pdi-types/asset/video/VideoPlayer";
     /**
         * 動画リソースを表すインターフェース。
         * 本クラスのインスタンスをゲーム開発者が直接生成することはない。
@@ -819,9 +851,70 @@ declare module '@akashic/pdi-types/asset/video/VideoAsset' {
     }
 }
 
+declare module '@akashic/pdi-types/asset/vector-image/VectorImageAsset' {
+    import type { Surface } from "@akashic/pdi-types/surface/Surface";
+    import type { Asset } from "@akashic/pdi-types/asset/Asset";
+    import type { VectorImageAssetHint } from "@akashic/pdi-types/asset/vector-image/VectorImageAssetHint";
+    /**
+        * ベクタ画像リソースを表すインターフェース。
+        * 本クラスのインスタンスをゲーム開発者が直接生成することはない。
+        * game.jsonによって定義された内容をもとに暗黙的に生成されたインスタンスを、
+        * Scene#assets、またはGame#assetsによって取得して利用する。
+        */
+    export interface VectorImageAsset extends Asset {
+            type: "vector-image";
+            width: number;
+            height: number;
+            hint: VectorImageAssetHint | undefined;
+            /**
+                * サーフェスを生成する。
+                * ベクタ画像をサポートしない環境においては `null` を返す。
+                * @param width 作成するサーフェスの幅。
+                * @param height 作成するサーフェスの高さ。
+                */
+            createSurface(width: number, height: number): Surface | null;
+            /**
+                * サーフェスを生成する。
+                * ベクタ画像をサポートしない環境においては `null` を返す。
+                * @param width 作成するサーフェスの幅。
+                * @param height 作成するサーフェスの高さ。
+                * @param sx 元画像の描画矩形範囲のx座標。
+                * @param sy 元画像の描画矩形範囲のy座標。
+                * @param sWidth 元画像の描画矩形範囲の幅。
+                * @param sHeight 元画像の描画矩形範囲の高さ。
+                */
+            createSurface(width: number, height: number, sx: number, sy: number, sWidth: number, sHeight: number): Surface | null;
+    }
+}
+
+declare module '@akashic/pdi-types/asset/vector-image/VectorImageAssetHint' {
+    /**
+      * VectorImageAssetの設定を表すインターフェース。
+      */
+    export interface VectorImageAssetHint {
+        untainted?: boolean;
+    }
+}
+
+declare module '@akashic/pdi-types/asset/binary/BinaryAsset' {
+    import type { Asset } from "@akashic/pdi-types/asset/Asset";
+    /**
+      * バイナリ形式のリソースを表すインターフェース。
+      * 本クラスのインスタンスをゲーム開発者が直接生成することはない。
+      * game.jsonによって定義された内容をもとに暗黙的に生成されたインスタンスを、
+      * Scene#assets、またはGame#assetsによって取得して利用する。
+      *
+      * BinaryAsset#dataによって、本リソースのバイト配列を取得することが出来る。
+      */
+    export interface BinaryAsset extends Asset {
+        type: "binary";
+        data: ArrayBuffer;
+    }
+}
+
 declare module '@akashic/pdi-types/asset/Asset' {
-    import { Trigger } from "@akashic/trigger";
-    import { AssetLoadError } from "@akashic/pdi-types/errors";
+    import type { Trigger } from "@akashic/trigger";
+    import type { AssetLoadError } from "@akashic/pdi-types/errors";
     /**
         * `Asset` の読み込みまたは読み込み失敗を受け取るハンドラのインターフェース定義。
         * 通常、このインターフェースをゲーム開発者が利用する必要はない。
@@ -974,7 +1067,7 @@ declare module '@akashic/pdi-types/font/FontFamily' {
 }
 
 declare module '@akashic/pdi-types/font/Glyph' {
-    import { Surface } from "@akashic/pdi-types/surface/Surface";
+    import type { Surface } from "@akashic/pdi-types/surface/Surface";
     /**
         * グリフの領域を表すインターフェース。
         */
@@ -1060,8 +1153,8 @@ declare module '@akashic/pdi-types/font/Glyph' {
 }
 
 declare module '@akashic/pdi-types/font/GlyphFactory' {
-    import { FontWeightString } from "@akashic/pdi-types/font/FontWeightString";
-    import { Glyph } from "@akashic/pdi-types/font/Glyph";
+    import type { FontWeightString } from "@akashic/pdi-types/font/FontWeightString";
+    import type { Glyph } from "@akashic/pdi-types/font/Glyph";
     /**
         * グリフファクトリ。
         *
@@ -1176,7 +1269,7 @@ declare module '@akashic/pdi-types/platform/OperationPluginView' {
 }
 
 declare module '@akashic/pdi-types/platform/OperationPluginViewInfo' {
-    import { OperationPluginView } from "@akashic/pdi-types/platform/OperationPluginView";
+    import type { OperationPluginView } from "@akashic/pdi-types/platform/OperationPluginView";
     /**
         * 操作プラグインが参照する、抽象化されたviewの情報。
         */
@@ -1194,13 +1287,13 @@ declare module '@akashic/pdi-types/platform/OperationPluginViewInfo' {
 }
 
 declare module '@akashic/pdi-types/platform/Platform' {
-    import { AMFlow } from "@akashic/amflow";
-    import { Surface } from "@akashic/pdi-types/surface/Surface";
-    import { Looper } from "@akashic/pdi-types/platform/Looper";
-    import { OperationPluginViewInfo } from "@akashic/pdi-types/platform/OperationPluginViewInfo";
-    import { PlatformEventHandler } from "@akashic/pdi-types/platform/PlatformEventHandler";
-    import { RendererRequirement } from "@akashic/pdi-types/platform/RendererRequirement";
-    import { ResourceFactory } from "@akashic/pdi-types/platform/ResourceFactory";
+    import type { AMFlow } from "@akashic/amflow";
+    import type { Surface } from "@akashic/pdi-types/surface/Surface";
+    import type { Looper } from "@akashic/pdi-types/platform/Looper";
+    import type { OperationPluginViewInfo } from "@akashic/pdi-types/platform/OperationPluginViewInfo";
+    import type { PlatformEventHandler } from "@akashic/pdi-types/platform/PlatformEventHandler";
+    import type { RendererRequirement } from "@akashic/pdi-types/platform/RendererRequirement";
+    import type { ResourceFactory } from "@akashic/pdi-types/platform/ResourceFactory";
     /**
         * Platform: PDIの主要なインターフェース。
         *
@@ -1285,8 +1378,8 @@ declare module '@akashic/pdi-types/platform/Platform' {
 }
 
 declare module '@akashic/pdi-types/platform/PlatformEventHandler' {
-    import * as pl from "@akashic/playlog";
-    import { PlatformPointEvent } from "@akashic/pdi-types/platform/PlatformPointEvent";
+    import type * as pl from "@akashic/playlog";
+    import type { PlatformPointEvent } from "@akashic/pdi-types/platform/PlatformPointEvent";
     /**
         * プラットフォームで生じたイベントの受付口。
         */
@@ -1309,7 +1402,7 @@ declare module '@akashic/pdi-types/platform/PlatformEventHandler' {
 }
 
 declare module '@akashic/pdi-types/platform/PlatformPointEvent' {
-    import { CommonOffset } from "@akashic/pdi-types/commons";
+    import type { CommonOffset } from "@akashic/pdi-types/commons";
     /**
         * ポイントイベントの種類。
         */
@@ -1317,6 +1410,14 @@ declare module '@akashic/pdi-types/platform/PlatformPointEvent' {
             Down = 0,
             Move = 1,
             Up = 2
+    }
+    /**
+        * ポイントイベントを発生させたボタンの種類。
+        */
+    export const enum PlatformButtonType {
+            Primary = 0,
+            Auxiliary = 1,
+            Secondary = 2
     }
     /**
         * プラットフォームのポイントイベント。
@@ -1339,6 +1440,11 @@ declare module '@akashic/pdi-types/platform/PlatformPointEvent' {
                 * プライマリサーフェスの左上を原点とする。
                 */
             offset: CommonOffset;
+            /**
+                * ポイントイベントを発生させたボタンの種類。
+                * defalt: Primary
+                */
+            button?: PlatformButtonType;
     }
 }
 
@@ -1364,18 +1470,21 @@ declare module '@akashic/pdi-types/platform/RendererRequirement' {
 }
 
 declare module '@akashic/pdi-types/platform/ResourceFactory' {
-    import { AudioAsset } from "@akashic/pdi-types/asset/audio/AudioAsset";
-    import { AudioAssetHint } from "@akashic/pdi-types/asset/audio/AudioAssetHint";
-    import { AudioPlayer } from "@akashic/pdi-types/asset/audio/AudioPlayer";
-    import { AudioSystem } from "@akashic/pdi-types/asset/audio/AudioSystem";
-    import { ImageAsset } from "@akashic/pdi-types/asset/image/ImageAsset";
-    import { ScriptAsset } from "@akashic/pdi-types/asset/script/ScriptAsset";
-    import { TextAsset } from "@akashic/pdi-types/asset/text/TextAsset";
-    import { VideoAsset } from "@akashic/pdi-types/asset/video/VideoAsset";
-    import { VideoSystem } from "@akashic/pdi-types/asset/video/VideoSystem";
-    import { FontWeightString } from "@akashic/pdi-types/font/FontWeightString";
-    import { GlyphFactory } from "@akashic/pdi-types/font/GlyphFactory";
-    import { Surface } from "@akashic/pdi-types/surface/Surface";
+    import type { AudioAsset } from "@akashic/pdi-types/asset/audio/AudioAsset";
+    import type { AudioAssetHint } from "@akashic/pdi-types/asset/audio/AudioAssetHint";
+    import type { AudioPlayer } from "@akashic/pdi-types/asset/audio/AudioPlayer";
+    import type { AudioSystem } from "@akashic/pdi-types/asset/audio/AudioSystem";
+    import type { BinaryAsset } from "@akashic/pdi-types/asset/binary/BinaryAsset";
+    import type { ImageAsset } from "@akashic/pdi-types/asset/image/ImageAsset";
+    import type { ScriptAsset } from "@akashic/pdi-types/asset/script/ScriptAsset";
+    import type { TextAsset } from "@akashic/pdi-types/asset/text/TextAsset";
+    import type { VectorImageAsset } from "@akashic/pdi-types/asset/vector-image/VectorImageAsset";
+    import type { VectorImageAssetHint } from "@akashic/pdi-types/asset/vector-image/VectorImageAssetHint";
+    import type { VideoAsset } from "@akashic/pdi-types/asset/video/VideoAsset";
+    import type { VideoSystem } from "@akashic/pdi-types/asset/video/VideoSystem";
+    import type { FontWeightString } from "@akashic/pdi-types/font/FontWeightString";
+    import type { GlyphFactory } from "@akashic/pdi-types/font/GlyphFactory";
+    import type { Surface } from "@akashic/pdi-types/surface/Surface";
     /**
         * リソースの生成を行うインターフェース。
         *
@@ -1386,10 +1495,12 @@ declare module '@akashic/pdi-types/platform/ResourceFactory' {
     export interface ResourceFactory {
             createImageAsset(id: string, assetPath: string, width: number, height: number): ImageAsset;
             createVideoAsset(id: string, assetPath: string, width: number, height: number, system: VideoSystem, loop: boolean, useRealSize: boolean): VideoAsset;
-            createAudioAsset(id: string, assetPath: string, duration: number, system: AudioSystem, loop: boolean, hint: AudioAssetHint): AudioAsset;
+            createAudioAsset(id: string, assetPath: string, duration: number, system: AudioSystem, loop: boolean, hint: AudioAssetHint, offset?: number): AudioAsset;
             createTextAsset(id: string, assetPath: string): TextAsset;
             createAudioPlayer(system: AudioSystem): AudioPlayer;
-            createScriptAsset(id: string, assetPath: string): ScriptAsset;
+            createScriptAsset(id: string, assetPath: string, exports?: string[]): ScriptAsset;
+            createVectorImageAsset?(id: string, assetPath: string, width: number, height: number, hint?: VectorImageAssetHint): VectorImageAsset;
+            createBinaryAsset?(id: string, assetPath: string): BinaryAsset;
             /**
                 * Surface を作成する。
                 * 与えられたサイズで、ゲーム開発者が利用できる描画領域 (`Surface`) を作成して返す。
@@ -1416,6 +1527,7 @@ declare module '@akashic/pdi-types/platform/ResourceFactory' {
                 * ただし `fontFamily` は参考値であり、環境によってはそれらの字体で描かれるとは限らない。
                 */
             createGlyphFactory(fontFamily: string | string[], fontSize: number, baselineHeight?: number, fontColor?: string, strokeWidth?: number, strokeColor?: string, strokeOnly?: boolean, fontWeight?: FontWeightString): GlyphFactory;
+            createVectorImageAssetFromString?(id: string, assetPath: string, data: string): VectorImageAsset;
     }
 }
 

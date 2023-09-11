@@ -1,5 +1,5 @@
-/*v1.0.1
-
+/*
+v2.0.1
 */
 
 declare module '@akashic/trigger' {
@@ -15,7 +15,9 @@ declare module '@akashic/trigger/TriggerLike' {
         *
         * この関数がtruthyな値を返した場合、ハンドラ登録は解除される。
         */
-    export type HandlerFunction<T> = (arg: T) => void | boolean;
+    export type HandlerFunction<T> = HandlerSyncFunction<T> | HandlerAsyncFunction<T>;
+    export type HandlerSyncFunction<T> = (arg: T) => void | boolean;
+    export type HandlerAsyncFunction<T> = (arg: T) => Promise<unknown>;
     /**
         * Triggerのハンドラ。
         */
@@ -28,7 +30,7 @@ declare module '@akashic/trigger/TriggerLike' {
                 * ハンドラのオーナー。
                 * `func` 呼び出しの際に `this` として利用される値。
                 */
-            owner: any;
+            owner: unknown;
             /**
                 * 呼び出し後、 `remove()` されるべきである時またその時のみ、真。
                 */
@@ -50,7 +52,7 @@ declare module '@akashic/trigger/TriggerLike' {
                 * ハンドラのオーナー。
                 * `func` 呼び出しの際に `this` として利用される値。
                 */
-            owner?: any;
+            owner?: unknown;
             /**
                 * ハンドラの名前。
                 */
@@ -80,7 +82,7 @@ declare module '@akashic/trigger/TriggerLike' {
                 * 省略された場合、 `remove()` では `undefined` とみなされる。
                 * 省略された場合、 `removeAll()` ではこの値に関係なく他の条件にマッチする限り削除される。
                 */
-            owner?: any;
+            owner?: unknown;
             /**
                 * ハンドラの名前。
                 *
@@ -95,7 +97,7 @@ declare module '@akashic/trigger/TriggerLike' {
         */
     export interface TriggerSearchConditions<T> {
             func?: HandlerFunction<T>;
-            owner?: any;
+            owner?: unknown;
             name?: string | null;
     }
     /**
@@ -111,7 +113,7 @@ declare module '@akashic/trigger/TriggerLike' {
                 * @param func ハンドラの関数
                 * @param owner ハンドラのオーナー。 `func` を呼び出す時に `this` として用いられる値
                 */
-            add(func: HandlerFunction<T>, owner?: any): void;
+            add(func: HandlerFunction<T>, owner?: unknown): void;
             /**
                 * このTriggerにハンドラを追加する。
                 * @param params 登録するハンドラの情報
@@ -123,7 +125,7 @@ declare module '@akashic/trigger/TriggerLike' {
                 * @param func ハンドラの関数
                 * @param owner ハンドラのオーナー。 `func` を呼び出す時に `this` として用いられる値
                 */
-            addOnce(func: HandlerFunction<T>, owner?: any): void;
+            addOnce(func: HandlerFunction<T>, owner?: unknown): void;
             /**
                 * このTriggerにハンドラを追加する。
                 * 本メソッドにより追加されたハンドラは実行後に破棄される。
@@ -154,7 +156,7 @@ declare module '@akashic/trigger/TriggerLike' {
                 * @param func 条件として用いるハンドラの関数
                 * @param owner 条件として用いるハンドラのオーナー
                 */
-            contains(func: HandlerFunction<T> | null, owner?: any): boolean;
+            contains(func: HandlerFunction<T> | null, owner?: unknown): boolean;
             /**
                 * 指定した条件に一致したハンドラが登録されているかを返す。
                 * 指定されなかった条件は、条件として無視される(登録時の値に関わらず一致するとみなされる)。
@@ -169,7 +171,7 @@ declare module '@akashic/trigger/TriggerLike' {
                 * @param func 削除条件として用いるハンドラの関数
                 * @param owner 削除条件として用いるハンドラのオーナー。省略した場合、 `undefined`
                 */
-            remove(func: HandlerFunction<T>, owner?: any): void;
+            remove(func: HandlerFunction<T>, owner?: unknown): void;
             /**
                 * 指定した条件に完全一致するハンドラを削除する。
                 * 同じ組み合わせで複数登録されている場合、一つだけ削除する。
@@ -211,7 +213,7 @@ declare module '@akashic/trigger/ChainTriggerLike' {
                 */
             chain: TriggerLike<T>;
             filter: ChainTriggerFilterFunction<T> | null;
-            filterOwner: any;
+            filterOwner: unknown;
     }
 }
 
@@ -236,7 +238,7 @@ declare module '@akashic/trigger/Trigger' {
                 * @param func ハンドラの関数
                 * @param owner ハンドラのオーナー。 `func` を呼び出す時に `this` として用いられる値
                 */
-            add(func: HandlerFunction<T>, owner?: any): void;
+            add(func: HandlerFunction<T>, owner?: unknown): void;
             /**
                 * このTriggerにハンドラを追加する。
                 * @param params 登録するハンドラの情報
@@ -248,7 +250,7 @@ declare module '@akashic/trigger/Trigger' {
                 * @param func ハンドラの関数
                 * @param owner ハンドラのオーナー。 `func` を呼び出す時に `this` として用いられる値
                 */
-            addOnce(func: HandlerFunction<T>, owner?: any): void;
+            addOnce(func: HandlerFunction<T>, owner?: unknown): void;
             /**
                 * このTriggerにハンドラを追加する。
                 * 本メソッドにより追加されたハンドラは実行後に破棄される。
@@ -267,7 +269,7 @@ declare module '@akashic/trigger/Trigger' {
                 * 呼び出し後、次のいずれかの条件を満たす全ハンドラの登録は解除される。
                 * * ハンドラが `addOnce()` で登録されていた場合
                 * * ハンドラが `add()` で登録される際に `once: true` オプションが与えられていた場合
-                * * 関数がtruthyな値を返した場合
+                * * ハンドラが Promise 以外の truthy な値を返した場合
                 *
                 * @param arg ハンドラに与えられる引数
                 */
@@ -279,7 +281,7 @@ declare module '@akashic/trigger/Trigger' {
                 * @param func 条件として用いるハンドラの関数
                 * @param owner 条件として用いるハンドラのオーナー
                 */
-            contains(func: HandlerFunction<T> | null, owner?: any): boolean;
+            contains(func: HandlerFunction<T> | null, owner?: unknown): boolean;
             /**
                 * 指定した条件に一致したハンドラが登録されているかを返す。
                 * 指定されなかった条件は、条件として無視される(登録時の値に関わらず一致するとみなされる)。
@@ -294,7 +296,7 @@ declare module '@akashic/trigger/Trigger' {
                 * @param func 削除条件として用いるハンドラの関数
                 * @param owner 削除条件として用いるハンドラのオーナー。省略した場合、 `undefined`
                 */
-            remove(func: HandlerFunction<T>, owner?: any): void;
+            remove(func: HandlerFunction<T>, owner?: unknown): void;
             /**
                 * 指定した条件に完全一致するハンドラを削除する。
                 * 同じ組み合わせで複数登録されている場合、一つだけ削除する。
@@ -350,7 +352,7 @@ declare module '@akashic/trigger/ChainTrigger' {
                 * フィルタのオーナー。
                 * `filter` の呼び出し時、 `this` として与えられる。
                 */
-            filterOwner: any;
+            filterOwner: unknown;
             /**
                 * `chain`に実際に`add`されているか否か。
                 * @private
@@ -364,10 +366,10 @@ declare module '@akashic/trigger/ChainTrigger' {
                 * @param filter `chain` がfireされたときに実行される関数。省略された場合、または本関数の戻り値が真の場合、このインスタンスをfireする。
                 * @param filterOwner `filter` 呼び出し時に使われる `this` の値。
                 */
-            constructor(chain: TriggerLike<T>, filter?: ChainTriggerFilterFunction<T>, filterOwner?: any);
-            add(paramsOrHandler: any, owner?: any): void;
-            addOnce(paramsOrHandler: any, owner?: any): void;
-            remove(func: HandlerFunction<T>, owner?: any): void;
+            constructor(chain: TriggerLike<T>, filter?: ChainTriggerFilterFunction<T>, filterOwner?: unknown);
+            add(paramsOrHandler: any, owner?: unknown): void;
+            addOnce(paramsOrHandler: any, owner?: unknown): void;
+            remove(func: HandlerFunction<T>, owner?: unknown): void;
             remove(params: TriggerRemoveConditions<T>): void;
             removeAll(params?: TriggerRemoveConditions<T>): void;
             destroy(): void;
