@@ -1,44 +1,18 @@
 <template>
 	<div class="image-viewer-container">
-		<img :src="props.src" :title="props.id" :width="props.width" :height="props.height" class="transparent" />
+		<img :src="src" :title="title" :width="width" :height="height" class="transparent" />
 	</div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from "vue";
-
-interface State {
-	id: string;
-	path: string;
+<script setup lang="ts">
+interface Props {
+	title: string;
+	src: string;
 	width: number;
 	height: number;
 }
 
-export default defineComponent({
-	props: {
-		title: {
-			type: String,
-			required: true
-		},
-		src: {
-			type: String,
-			required: true
-		},
-		width: {
-			type: Number,
-			required: true
-		},
-		height: {
-			type: Number,
-			required: true
-		}
-	},
-	setup(props) {
-		return {
-			props
-		};
-	}
-});
+defineProps<Props>();
 </script>
 
 <style scoped>

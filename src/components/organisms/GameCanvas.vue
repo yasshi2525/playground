@@ -19,84 +19,56 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, onUnmounted, PropType, ref, watch } from "vue";
+const canvasRef = ref<HTMLCanvasElement>();
+export const getCanvasElement = (): HTMLCanvasElement | null => {
+	const canvas = canvasRef.value ?? null;
+	return canvas;
+};
+</script>
 
-export default defineComponent({
-	props: {
-		width: {
-			type: Number,
-			required: true
-		},
-		height: {
-			type: Number,
-			required: true
-		},
-		running: {
-			type: Boolean,
-			required: true
-		},
-		note: {
-			type: String,
-			default: ""
-		},
-		onRun: {
-			type: Function as PropType<() => void>,
-			required: true
-		},
-		onStop: {
-			type: Function as PropType<() => void>,
-			required: true
-		},
-		onReload: {
-			type: Function as PropType<() => void>,
-			required: true
-		}
+<script setup lang="ts">
+import { onMounted, onUnmounted, ref, watch } from "vue";
+
+interface Props {
+	width: number;
+	height: number;
+	running: boolean;
+	note?: string;
+	onRun: () => void;
+	onStop: () => void;
+	onReload: () => void;
+}
+
+const props = defineProps<Props>();
+const scalableRef = ref<HTMLDivElement>();
+
+const adjust = () => {
+	if (!scalableRef.value) return;
+	const elem = window.document.body;
+	const dom = scalableRef.value;
+	const scale = Math.min(1, Math.min(elem.clientWidth / props.width, elem.clientHeight / props.height));
+	dom.style.transformOrigin = `0 0`;
+	dom.style.transform = `scale(${scale})`;
+	dom.style.width = props.width * scale + "px";
+	dom.style.height = props.height * scale + "px";
+};
+
+watch(
+	() => [props.width, props.height],
+	() => {
+		adjust();
 	},
-	setup(props) {
-		const canvasRef = ref<HTMLCanvasElement>();
-		const scalableRef = ref<HTMLDivElement>();
-
-		const getCanvasElement = (): HTMLCanvasElement | null => {
-			const canvas = canvasRef.value ?? null;
-			return canvas;
-		};
-
-		const adjust = () => {
-			if (!scalableRef.value) return;
-			const elem = window.document.body;
-			const dom = scalableRef.value;
-			const scale = Math.min(1, Math.min(elem.clientWidth / props.width, elem.clientHeight / props.height));
-			dom.style.transformOrigin = `0 0`;
-			dom.style.transform = `scale(${scale})`;
-			dom.style.width = props.width * scale + "px";
-			dom.style.height = props.height * scale + "px";
-		};
-
-		watch(
-			() => [props.width, props.height],
-			() => {
-				adjust();
-			},
-			{
-				deep: true
-			}
-		);
-
-		onMounted(() => {
-			window.addEventListener("resize", adjust);
-		});
-
-		onUnmounted(() => {
-			window.removeEventListener("resize", adjust);
-		});
-
-		return {
-			props,
-			canvasRef,
-			scalableRef,
-			getCanvasElement
-		};
+	{
+		deep: true
 	}
+);
+
+onMounted(() => {
+	window.addEventListener("resize", adjust);
+});
+
+onUnmounted(() => {
+	window.removeEventListener("resize", adjust);
 });
 </script>
 

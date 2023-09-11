@@ -11,49 +11,33 @@
 	</div>
 </template>
 
-<script lang="ts">
-import { defineComponent, reactive, PropType } from "vue";
+<script setup lang="ts">
+import { reactive } from "vue";
 import BaseButton from "~/components/atoms/BaseButton.vue";
 import { PseudoFile } from "~/types/PseudoFile";
 import { downloadAsZip } from "~/utils/downloadAsZip";
+
+interface Props {
+	name: string;
+	pseudoFiles: PseudoFile[];
+}
 
 interface State {
 	processing: boolean;
 }
 
-export default defineComponent({
-	components: {
-		BaseButton
-	},
-	props: {
-		name: {
-			type: String,
-			required: true
-		},
-		pseudoFiles: {
-			type: Array as PropType<PseudoFile[]>,
-			required: true
-		}
-	},
-	setup(props) {
-		const state = reactive<State>({
-			processing: false
-		});
-
-		const handleClickDownloadAsZip = async () => {
-			if (state.processing) return;
-			state.processing = true;
-			await downloadAsZip(`${props.name}.zip`, props.pseudoFiles);
-			state.processing = false;
-		};
-
-		return {
-			props,
-			state,
-			handleClickDownloadAsZip
-		};
-	}
+const state = reactive<State>({
+	processing: false
 });
+
+const props = defineProps<Props>();
+
+const handleClickDownloadAsZip = async () => {
+	if (state.processing) return;
+	state.processing = true;
+	await downloadAsZip(`${props.name}.zip`, props.pseudoFiles);
+	state.processing = false;
+};
 </script>
 
 <style scoped>

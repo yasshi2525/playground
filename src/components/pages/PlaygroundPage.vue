@@ -19,8 +19,8 @@
 	</div>
 </template>
 
-<script lang="ts">
-import { defineComponent, provide, reactive } from "vue";
+<script setup lang="ts">
+import { provide } from "vue";
 
 import DownloadButton from "~/components/molecules/DownloadButton.vue";
 import AkashicEditor from "~/components/templates/AkashicEditor.vue";
@@ -28,51 +28,20 @@ import GameController from "~/components/templates/GameController.vue";
 import { useGameContext, useGameContextKey } from "~/composables/useGameContext";
 import { useGameJSONResolver, useGameJSONResolverKey } from "~/composables/useGameJSONResolver";
 
-interface State {
-	edited: boolean;
+interface Props {
+	gameJsonUri: string;
+	name: string;
+	showDownloadButton?: boolean;
 }
 
-export default defineComponent({
-	components: {
-		DownloadButton,
-		AkashicEditor,
-		GameController
-	},
-	props: {
-		gameJsonUri: {
-			type: String,
-			required: true
-		},
-		name: {
-			type: String,
-			required: true
-		},
-		base64: {
-			type: String,
-			required: false,
-			default: undefined
-		},
-		showDownloadButton: {
-			type: Boolean,
-			default: true
-		}
-	},
-	setup(props) {
-		const gameConfs = useGameJSONResolver();
-		provide(useGameJSONResolverKey, gameConfs);
-		provide(useGameContextKey, useGameContext());
-		gameConfs.fetchPseudoFilesFromUri(props.gameJsonUri);
-
-		const state = reactive<State>({
-			edited: false
-		});
-
-		return {
-			props,
-			gameConfs
-		};
-	}
+const props = withDefaults(defineProps<Props>(), {
+	showDownloadButton: true
 });
+
+const gameConfs = useGameJSONResolver();
+provide(useGameJSONResolverKey, gameConfs);
+provide(useGameContextKey, useGameContext());
+gameConfs.fetchPseudoFilesFromUri(props.gameJsonUri);
 </script>
 
 <style scoped>

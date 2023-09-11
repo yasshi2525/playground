@@ -160,15 +160,6 @@
 	</div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from "vue";
+<script setup lang="ts">
 import { encode } from "~/utils/Base64";
-
-export default defineComponent({
-	setup() {
-		return {
-			encode
-		};
-	}
-});
 </script>
