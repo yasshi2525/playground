@@ -41,7 +41,7 @@ watch(
 );
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .audio-container {
 	width: 100%;
 	height: 100%;

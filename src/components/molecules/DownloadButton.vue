@@ -40,7 +40,7 @@ const handleClickDownloadAsZip = async () => {
 };
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .download-button {
 	width: 60px;
 	height: 60px;

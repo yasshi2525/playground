@@ -18,7 +18,7 @@ interface Props {
 defineProps<Props>();
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .console-viewer-container {
 	padding: 2px;
 }
