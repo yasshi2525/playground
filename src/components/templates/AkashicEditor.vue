@@ -23,6 +23,9 @@
 				<div v-else-if="state.currentPseudoFile && state.currentPseudoFile.editorType === 'audio'">
 					<AudioPlayer :src="state.currentPseudoFile.uri" :title="state.currentPseudoFile.name" />
 				</div>
+				<div v-else-if="state.currentPseudoFile && state.currentPseudoFile.editorType === 'binary'">
+					<BinaryViewer :src="state.currentPseudoFile.uri" :title="state.currentPseudoFile.name" />
+				</div>
 			</div>
 		</div>
 		<div class="container-bottom">
@@ -35,6 +38,7 @@
 import { inject, reactive, watch, provide } from "vue";
 import AssetListViewer from "~/components/molecules/AssetListViewer.vue";
 import AudioPlayer from "~/components/molecules/AudioPlayer.vue";
+import BinaryViewer from "~/components/molecules/BinaryViewer.vue";
 import ConsoleViewer from "~/components/molecules/ConsoleViewer.vue";
 import ImageViewer from "~/components/molecules/ImageViewer.vue";
 import CodeEditor from "~/components/organisms/CodeEditor.vue";
