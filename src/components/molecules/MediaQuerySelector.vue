@@ -8,7 +8,7 @@
 </template>
 
 <script setup lang="ts">
-import { onUnmounted, ref, watchEffect } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
 
 interface Props {
 	breakpoint: number;
@@ -22,7 +22,7 @@ const handleMediaQueryChanged = () => {
 	isPC.value = props.breakpoint <= window.innerWidth;
 };
 
-watchEffect(() => {
+onMounted(() => {
 	mediaQuery.addEventListener("change", handleMediaQueryChanged);
 });
 
