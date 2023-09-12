@@ -14,6 +14,7 @@ export interface PseudoGameJSONFile {
 	assetType: "game.json";
 	editorType: "text";
 	uri: string;
+	path: "game.json";
 	language: "json";
 	value: string;
 	hidden?: boolean;
