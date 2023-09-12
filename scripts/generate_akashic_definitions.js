@@ -6,13 +6,16 @@ const { execSync } = require("child_process");
 const path = require("path");
 const dts = require("dts-bundle");
 const fs = require("fs-extra");
+const cleanupDir = require("./cleanup_dir");
 
 const aksVersion = process.argv[2];
 
 try {
-  execSync(`npm install @akashic/akashic-engine@${aksVersion} --no-save`);
+  (async () => {
+    await cleanupDir(path.join(__dirname, "..", "public", "types"));
 
-  (() => {
+    execSync(`npm install @akashic/akashic-engine@${aksVersion} --no-save`);
+
     const output = path.join(__dirname, "..", "public", "types", aksVersion, "akashic-engine.d.ts");
     fs.removeSync(output);
 
@@ -43,9 +46,7 @@ try {
       });
       console.log(`Successfully generated type definitions for ${name}@${ver}`);
     });
-  })();
 
-  (() => {
     [
       "@akashic-extension/akashic-timeline",
       "@akashic-extension/akashic-label",
