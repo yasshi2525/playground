@@ -10,7 +10,7 @@
 						hidden: pseudoFiles[i].hidden
 					}"
 					:title="pseudoFiles[i].name"
-					@click="handleCurrentPseudoFileChanged(pseudoFiles[i].uri)"
+					@click="handleCurrentPseudoFileChanged(pseudoFiles[i].path)"
 				>
 					<span v-if="pseudoFiles[i].assetType === 'game.json'"
 						><i class="material-icons inline" style="color: #eb8b35">settings</i></span
