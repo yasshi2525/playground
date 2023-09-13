@@ -57,7 +57,10 @@ export interface PseudoAudioAssetFile extends PseudoAssetFile {
 	duration: number;
 	systemId: any;
 	loop: boolean;
-	hint?: any;
+	hint: {
+		extensions: string[]; // NOTE: playground で必要そうなものだけ一旦定義しておく
+		[key: string]: any;
+	};
 }
 
 export interface PseudoBinaryAssetFile extends PseudoAssetFile {

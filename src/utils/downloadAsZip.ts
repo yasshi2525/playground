@@ -1,8 +1,10 @@
 import * as path from "path";
 import { saveAs } from "file-saver";
 import JSZip from "jszip";
+import urlJoin from "url-join";
 import { PseudoFile } from "~/types/PseudoFile";
 import { getBinaryContent } from "~/utils/getBinaryContent";
+import { dirname } from "~/utils/path";
 
 const binaryCache: { [name: string]: any } = {};
 
@@ -24,19 +26,12 @@ export async function downloadAsZip(name: string, pseudoFiles: PseudoFile[]) {
 			try {
 				const dir = zip.folder(path.dirname(file.path));
 				if (!dir) continue;
-				const oggFilename = file.filename + ".ogg";
-				const aacFilename = file.filename + ".aac";
-				if (!binaryCache[oggFilename]) {
-					binaryCache[oggFilename] = await getBinaryContent(file.uri + ".ogg");
-				}
-				if (!binaryCache[aacFilename]) {
-					binaryCache[aacFilename] = await getBinaryContent(file.uri + ".aac");
-				}
-				if (binaryCache[oggFilename]) {
-					dir.file(oggFilename, binaryCache[oggFilename], { binary: true });
-				}
-				if (binaryCache[aacFilename]) {
-					dir.file(aacFilename, binaryCache[aacFilename], { binary: true });
+				for (const extension of file.hint.extensions) {
+					const filename = file.filename + extension; // extension は ".xxx" の形式なのでそのまま結合可能
+					if (!binaryCache[filename]) {
+						binaryCache[filename] = await getBinaryContent(urlJoin(dirname(file.uri), filename));
+					}
+					dir.file(filename, binaryCache[filename], { binary: true });
 				}
 			} catch (e) {
 				console.error(e);

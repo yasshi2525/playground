@@ -1,4 +1,4 @@
-import { InjectionKey, reactive } from "vue";
+import { InjectionKey, onUnmounted, reactive } from "vue";
 import versions from "~/constants/versions.json" assert { type: "json" };
 import { GameConfiguration } from "~/types/AkashicEngineStandalone";
 import { ConsoleValue } from "~/types/ConsoleValue";
@@ -172,6 +172,10 @@ export function useGameContext() {
 
 	// initialize
 	clearConsole();
+
+	onUnmounted(() => {
+		stop();
+	});
 
 	return state;
 }

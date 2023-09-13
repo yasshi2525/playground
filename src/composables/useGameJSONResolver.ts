@@ -281,12 +281,14 @@ export function useGameJSONResolver() {
 					global: asset.global
 				};
 			} else if (asset.assetType === "audio") {
+				const hint = asset.hint ? { ...asset.hint } : { extensions: undefined };
+				hint.extensions = hint.extensions ? hint.extensions : [".ogg", ".aac"]; // FIXME: この値についてはどこかで定数化しておくべきかもしれない
 				gameJSON.assets[asset.id] = {
 					type: "audio",
 					path: asset.path,
 					duration: asset.duration,
 					systemId: asset.systemId,
-					hint: asset.hint,
+					hint,
 					global: asset.global
 				};
 			} else if (asset.assetType === "binary") {

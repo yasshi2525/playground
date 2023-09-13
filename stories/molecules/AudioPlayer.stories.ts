@@ -12,6 +12,7 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {
 	args: {
 		title: "se",
-		src: "/default/audio/se"
+		src: "/default/audio/se",
+		extensions: [".ogg", ".m4a", ".aac"]
 	}
 };
