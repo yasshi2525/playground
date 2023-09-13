@@ -6,7 +6,7 @@
 import urlJoin from "url-join";
 import { onMounted, ref, watch } from "vue";
 import { getMimeType } from "~/utils/getMimeType";
-import { basename } from "~/utils/path";
+import { basename, dirname } from "~/utils/path";
 
 interface Props {
 	title: string;
@@ -25,7 +25,7 @@ const createPlayer = () => {
 
 	for (const extension of props.extensions) {
 		const src = document.createElement("source");
-		src.setAttribute("src", urlJoin(props.src, basename(props.src) + extension));
+		src.setAttribute("src", urlJoin(dirname(props.src), basename(props.src) + extension));
 		src.setAttribute("type", getMimeType(extension));
 		player.appendChild(src);
 	}

@@ -4,6 +4,7 @@ import JSZip from "jszip";
 import urlJoin from "url-join";
 import { PseudoFile } from "~/types/PseudoFile";
 import { getBinaryContent } from "~/utils/getBinaryContent";
+import { dirname } from "~/utils/path";
 
 const binaryCache: { [name: string]: any } = {};
 
@@ -28,7 +29,7 @@ export async function downloadAsZip(name: string, pseudoFiles: PseudoFile[]) {
 				for (const extension of file.hint.extensions) {
 					const filename = file.filename + extension; // extension は ".xxx" の形式なのでそのまま結合可能
 					if (!binaryCache[filename]) {
-						binaryCache[filename] = await getBinaryContent(urlJoin(file.uri, filename));
+						binaryCache[filename] = await getBinaryContent(urlJoin(dirname(file.uri), filename));
 					}
 					dir.file(filename, binaryCache[filename], { binary: true });
 				}
