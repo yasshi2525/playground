@@ -3,11 +3,15 @@
 </template>
 
 <script setup lang="ts">
+import urlJoin from "url-join";
 import { onMounted, ref, watch } from "vue";
+import { getMimeType } from "~/utils/getMimeType";
+import { basename } from "~/utils/path";
 
 interface Props {
 	title: string;
 	src: string;
+	extensions: string[]; // [".xxx", ".yyy"] の形式
 }
 
 const props = defineProps<Props>();
@@ -18,14 +22,14 @@ const createPlayer = () => {
 	audioContainerRef.value.innerHTML = "";
 	const player = document.createElement("audio");
 	player.setAttribute("controls", "");
-	const src1 = document.createElement("source");
-	src1.setAttribute("src", props.src + ".ogg");
-	src1.setAttribute("type", "audio/ogg");
-	player.appendChild(src1);
-	const src2 = document.createElement("source");
-	src2.setAttribute("src", props.src + ".aac");
-	src2.setAttribute("type", "audio/aac");
-	player.appendChild(src2);
+
+	for (const extension of props.extensions) {
+		const src = document.createElement("source");
+		src.setAttribute("src", urlJoin(props.src, basename(props.src) + extension));
+		src.setAttribute("type", getMimeType(extension));
+		player.appendChild(src);
+	}
+
 	audioContainerRef.value.appendChild(player);
 };
 

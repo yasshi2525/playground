@@ -15,6 +15,7 @@
       "systemId": "sound",
       "duration": 250,
       "hint": {
+        "streaming": false,
         "extensions": [
           ".m4a",
           ".ogg",

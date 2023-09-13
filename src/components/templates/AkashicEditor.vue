@@ -44,7 +44,11 @@
 					/>
 				</div>
 				<div v-else-if="state.currentPseudoFile && state.currentPseudoFile.editorType === 'audio'">
-					<AudioPlayer :src="state.currentPseudoFile.uri" :title="state.currentPseudoFile.name" />
+					<AudioPlayer
+						:src="state.currentPseudoFile.uri"
+						:title="state.currentPseudoFile.name"
+						:extensions="state.currentPseudoFile.hint.extensions"
+					/>
 				</div>
 			</div>
 		</div>
