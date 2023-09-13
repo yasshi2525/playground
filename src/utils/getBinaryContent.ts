@@ -1,14 +1,6 @@
-// @ts-ignore FIXME: 型定義が存在するモジュールへの変更を検討
-import JSZipUtils from "jszip-utils";
+import axios from "axios";
 
-export function getBinaryContent(url: string) {
-	return new Promise<ArrayBuffer>((resolve, reject) => {
-		JSZipUtils.getBinaryContent(url, function (err: any, data: ArrayBuffer) {
-			if (err) {
-				reject(err);
-			} else {
-				resolve(data);
-			}
-		});
-	});
+export async function getBinaryContent(url: string) {
+	const ret = await axios.get(url, { responseType: "arraybuffer" });
+	return ret.data;
 }
