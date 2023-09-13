@@ -3,10 +3,11 @@
 // e.g. node update_akashic_versions_json.js latest
 
 const { exec: execCallback } = require("child_process");
+const { readFile, writeFile } = require("fs").promises;
 const path = require("path");
 const util = require("util");
 const axios = require("axios");
-const { readFile, writeFile } = require("fs-extra");
+const cleanupDir = require("./cleanup_dir");
 const exec = util.promisify(execCallback);
 
 const distTag = process.argv[2] ?? "latest";
@@ -14,6 +15,8 @@ const distUrlPlaceholder = "https://github.com/akashic-games/akashic-engine-stan
 
 (async () => {
   try {
+    await cleanupDir(path.join(__dirname, "..", "public", "engine"));
+
     const { stdout: rawVersion } = await exec(`npm view @akashic/akashic-engine-standalone@${distTag} version`, { encoding: "utf-8" });
     const version = rawVersion.trim();
     const outputPath = path.join(__dirname, "..", "public", "engine", `akashic-engine-standalone-${version}.js`);
