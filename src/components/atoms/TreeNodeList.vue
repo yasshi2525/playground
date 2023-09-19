@@ -3,7 +3,7 @@
 		<li
 			v-if="!isRoot"
 			class="tree-node-list-label"
-			:style="{ paddingLeft: `${node.depth * padding}px` }"
+			:style="{ paddingLeft: `${(depth ?? 0) * padding}px` }"
 			:class="{ active: node.path === props.activePath }"
 			@click="handleClicked(node.path)"
 		>
@@ -21,6 +21,7 @@
 				:node="child"
 				:onChange="props.onChange"
 				:isRoot="false"
+				:depth="depth + 1"
 				:activePath="props.activePath"
 			>
 				<template #default="slotProps: { node: TreeNodeItem }">
@@ -48,6 +49,7 @@ interface Props {
 	isRoot?: boolean;
 	activePath?: string;
 	padding?: number;
+	depth?: number;
 	onChange?: (path: string) => void;
 	node: TreeNodeItem;
 }
@@ -55,7 +57,14 @@ interface State {
 	isOpen: boolean;
 }
 
-const props = withDefaults(defineProps<Props>(), { isRoot: true, isOpen: true, padding: 10, activePath: undefined, onChange: undefined });
+const props = withDefaults(defineProps<Props>(), {
+	isRoot: true,
+	isOpen: true,
+	padding: 10,
+	depth: 0,
+	activePath: undefined,
+	onChange: undefined
+});
 const state = reactive<State>({
 	isOpen: props.isOpen
 });

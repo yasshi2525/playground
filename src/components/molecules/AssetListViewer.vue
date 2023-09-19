@@ -94,7 +94,6 @@ const state = reactive<State>({
 		label: "",
 		isOpen: true,
 		isDirectory: true,
-		depth: 0,
 		children: []
 	}
 });

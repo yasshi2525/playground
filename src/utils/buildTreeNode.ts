@@ -18,7 +18,6 @@ export function buildTreeNode<T>(data: T[], key: keyof T, compareFunc: (a: TreeN
 		const segments = path.split("/");
 		let currentNode: TreeNode[] = treeData;
 		let currentPath = "";
-		let currentIndent = 0;
 
 		for (const segment of segments) {
 			currentPath += currentPath ? `/${segment}` : segment;
@@ -30,7 +29,6 @@ export function buildTreeNode<T>(data: T[], key: keyof T, compareFunc: (a: TreeN
 					label: segment,
 					path: currentPath,
 					isDirectory: !currentPath.endsWith(path),
-					depth: currentIndent,
 					children: []
 				};
 
@@ -39,7 +37,6 @@ export function buildTreeNode<T>(data: T[], key: keyof T, compareFunc: (a: TreeN
 			}
 
 			currentNode = existingNode.children;
-			currentIndent++;
 		}
 	}
 
