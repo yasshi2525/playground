@@ -10,19 +10,23 @@ export function compareNodes(a: TreeNode, b: TreeNode): number {
 	return a.isDirectory ? -1 : 1;
 }
 
-export function buildTreeNode<T>(data: T[], key: keyof T, compareFunc: (a: TreeNode, b: TreeNode) => number = compareNodes): TreeNode[] {
-	const treeData: TreeNode[] = [];
+export function buildTreeNode<T>(data: T[], key: keyof T, compareFunc: (a: TreeNode, b: TreeNode) => number = compareNodes): TreeNode {
+	const root: TreeNode = {
+		label: "",
+		path: "",
+		isDirectory: true,
+		children: []
+	};
 
 	for (const item of data) {
 		const path = item[key] as string;
 		const segments = path.split("/");
-		let currentNode: TreeNode[] = treeData;
+		let currentNode: TreeNode = root;
 		let currentPath = "";
 
 		for (const segment of segments) {
 			currentPath += currentPath ? `/${segment}` : segment;
-
-			let existingNode = currentNode.find(node => node.label === segment);
+			let existingNode = currentNode.children.find(node => node.label === segment);
 
 			if (!existingNode) {
 				existingNode = {
@@ -32,13 +36,23 @@ export function buildTreeNode<T>(data: T[], key: keyof T, compareFunc: (a: TreeN
 					children: []
 				};
 
-				currentNode.push(existingNode);
-				currentNode.sort(compareFunc);
+				currentNode.children.push(existingNode);
 			}
 
-			currentNode = existingNode.children;
+			currentNode = existingNode;
 		}
 	}
 
-	return treeData;
+	sortTree(root.children, compareFunc);
+
+	return root;
+}
+
+function sortTree(nodes: TreeNode[], compareFunc: (a: TreeNode, b: TreeNode) => number) {
+	nodes.sort(compareFunc);
+	for (const node of nodes) {
+		if (0 < node.children.length) {
+			sortTree(node.children, compareFunc);
+		}
+	}
 }

@@ -27,7 +27,7 @@ describe("buildTreeNode", () => {
 		];
 		const tree = buildTreeNode(paths, "path");
 
-		expect(tree).toEqual([
+		expect(tree.children).toEqual([
 			{
 				label: "aaa",
 				path: "aaa",

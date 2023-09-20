@@ -139,8 +139,8 @@ watch(
 watch(
 	() => props.pseudoFiles,
 	pseudoFiles => {
-		const treeData = buildTreeNode(pseudoFiles, "path", compareFunc);
-		state.node.children = treeData;
+		const node = buildTreeNode(pseudoFiles, "path", compareFunc);
+		state.node = node;
 	},
 	{
 		deep: true
