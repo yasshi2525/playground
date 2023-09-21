@@ -2,34 +2,11 @@
 	<div class="akashic-editor-container">
 		<div class="container-top">
 			<div class="container-tabs hidden-scrollbar">
-				<ul>
-					<li
-						v-for="(asset, i) in gameConfs.pseudoFiles"
-						:key="i"
-						class="ctrl-tab"
-						:class="{
-							active: state.currentPseudoFile && state.currentPseudoFile.uri === gameConfs.pseudoFiles[i].uri,
-							hidden: gameConfs.pseudoFiles[i].hidden
-						}"
-						:title="gameConfs.pseudoFiles[i].name"
-						@click="changeCurrentPseudoFile(gameConfs.pseudoFiles[i].uri)"
-					>
-						<span v-if="gameConfs.pseudoFiles[i].assetType === 'game.json'"
-							><i class="material-icons inline" style="color: #eb8b35">settings</i></span
-						>
-						<span v-else-if="gameConfs.pseudoFiles[i].editorType === 'text'"
-							><i class="material-icons inline" style="color: #090c10">note</i></span
-						>
-						<span v-else-if="gameConfs.pseudoFiles[i].editorType === 'image'"
-							><i class="material-icons inline" style="color: #e50185">image</i></span
-						>
-						<span v-else-if="gameConfs.pseudoFiles[i].editorType === 'audio'"
-							><i class="material-icons inline" style="color: #084f93">music_note</i></span
-						>
-						<span v-else>❓</span>
-						{{ asset.filename }}
-					</li>
-				</ul>
+				<AssetListViewer
+					:pseudoFiles="gameConfs.pseudoFiles"
+					:currentPseudoFile="state.currentPseudoFile"
+					:onCurrentPseudoFileChange="handleCurrentPseudoFileChanged"
+				></AssetListViewer>
 			</div>
 			<div class="editor">
 				<div v-show="state.currentPseudoFile && state.currentPseudoFile.editorType === 'text'">
@@ -50,6 +27,9 @@
 						:extensions="state.currentPseudoFile.hint.extensions"
 					/>
 				</div>
+				<div v-else-if="state.currentPseudoFile && state.currentPseudoFile.editorType === 'binary'">
+					<BinaryViewer :src="state.currentPseudoFile.uri" :title="state.currentPseudoFile.name" />
+				</div>
 			</div>
 		</div>
 		<div class="container-bottom">
@@ -60,7 +40,9 @@
 
 <script setup lang="ts">
 import { inject, reactive, watch, provide } from "vue";
+import AssetListViewer from "~/components/molecules/AssetListViewer.vue";
 import AudioPlayer from "~/components/molecules/AudioPlayer.vue";
+import BinaryViewer from "~/components/molecules/BinaryViewer.vue";
 import ConsoleViewer from "~/components/molecules/ConsoleViewer.vue";
 import ImageViewer from "~/components/molecules/ImageViewer.vue";
 import CodeEditor from "~/components/organisms/CodeEditor.vue";
@@ -112,11 +94,11 @@ watch(
 watch(
 	() => gameConfs.entryAssetUri,
 	() => {
-		changeCurrentPseudoFile(gameConfs.entryAssetUri);
+		handleCurrentPseudoFileChanged(gameConfs.entryAssetUri);
 	}
 );
 
-const changeCurrentPseudoFile = (uri: string | null) => {
+const handleCurrentPseudoFileChanged = (uri: string | null) => {
 	const file = gameConfs.pseudoFiles.find(f => f.uri === uri);
 	if (!file) return;
 	if (file.editorType === "text") {
@@ -160,39 +142,6 @@ const changeCurrentPseudoFile = (uri: string | null) => {
 		overflow-y: scroll;
 	}
 
-	.container-tabs > ul {
-		list-style-type: none;
-		margin: 5px;
-		padding: 5px;
-	}
-
-	.container-tabs > ul > li.ctrl-tab:hover {
-		background-color: #ddd;
-		border-color: #ddd;
-	}
-
-	.container-tabs > ul > li {
-		cursor: pointer;
-		padding: 5px;
-		border-left-width: 5px;
-		border-left-style: solid;
-		border-left-color: #fff;
-		font-size: 14px;
-		white-space: nowrap;
-		text-overflow: ellipsis;
-		overflow: hidden;
-	}
-
-	.container-tabs > ul > li.ctrl-tab.active {
-		border-left-color: #666;
-		background-color: #eee;
-	}
-
-	.container-tabs > ul > li.ctrl-tab.hidden {
-		color: #aaa;
-		display: none;
-	}
-
 	.container-bottom {
 		height: 50px;
 		overflow-y: scroll;
@@ -224,41 +173,6 @@ const changeCurrentPseudoFile = (uri: string | null) => {
 		width: 100%;
 		border-top: 2px solid #ddd;
 		overflow-x: scroll;
-	}
-
-	.container-tabs > ul {
-		list-style-type: none;
-		margin: 5px;
-		padding: 5px 5px 0 5px;
-		display: flex;
-		flex-direction: row;
-	}
-
-	.container-tabs > ul > li {
-		cursor: pointer;
-		padding: 8px;
-		margin: 0px 3px;
-		border-color: #666;
-		border-style: solid;
-		border-width: 1px 1px 0 1px;
-		border-top-left-radius: 6px;
-		border-top-right-radius: 6px;
-		font-size: 14px;
-		white-space: nowrap;
-		background-color: #eee;
-	}
-
-	.container-tabs > ul > li.ctrl-tab:hover {
-		background-color: #ddd;
-	}
-
-	.container-tabs > ul > li.ctrl-tab.active {
-		background-color: #fff;
-	}
-
-	.container-tabs > ul > li.ctrl-tab.hidden {
-		color: #aaa;
-		display: none;
 	}
 
 	.container-bottom {

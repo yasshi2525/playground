@@ -76,7 +76,7 @@ gameConfs.fetchPseudoFilesFromUri(props.gameJsonUri);
 		height: 100%;
 		display: flex;
 		flex-direction: row;
-		position: relative;
+		overflow: hidden;
 	}
 
 	.container-agv {

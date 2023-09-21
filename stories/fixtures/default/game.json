@@ -34,6 +34,10 @@
       "type": "script",
       "path": "script/main.js",
       "global": true
+    },
+    "binary": {
+      "type": "binary",
+      "path": "assets/binary_1KiB"
     }
   },
   "moduleMainScripts": {},

@@ -93,6 +93,7 @@ export function useGameJSONResolver() {
 			filename: "game.json",
 			editorType: "text",
 			uri: urlJoin(assetBase, "game.json"),
+			path: "game.json",
 			language: "json",
 			value: JSON.stringify(gameJSON, undefined, 2)
 		});
