@@ -43,16 +43,15 @@ export function buildTreeNode<T>(data: T[], key: keyof T, compareFunc: (a: TreeN
 		}
 	}
 
-	sortTree(root.children, compareFunc);
+	sortTree(root, compareFunc);
 
 	return root;
 }
 
-function sortTree(nodes: TreeNode[], compareFunc: (a: TreeNode, b: TreeNode) => number) {
-	nodes.sort(compareFunc);
-	for (const node of nodes) {
-		if (0 < node.children.length) {
-			sortTree(node.children, compareFunc);
-		}
+function sortTree(node: TreeNode, compareFunc: (a: TreeNode, b: TreeNode) => number) {
+	if (node.children.length <= 0) return;
+	node.children.sort(compareFunc);
+	for (const childNode of node.children) {
+		sortTree(childNode, compareFunc);
 	}
 }
