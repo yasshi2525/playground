@@ -183,6 +183,9 @@ export function useGameJSONResolver() {
 				global
 			};
 		} else if (asset.type === "audio") {
+			// FIXME: generateGameJSON() と処理が重複している。統一すべき。
+			const hint = asset.hint ? { ...asset.hint } : { extensions: undefined };
+			hint.extensions = hint.extensions ? hint.extensions : [".ogg", ".aac"]; // FIXME: この値についてはどこかで定数化しておくべきかもしれない
 			return {
 				id: assetId,
 				name: assetId,
@@ -192,7 +195,7 @@ export function useGameJSONResolver() {
 				path: asset.path,
 				filename,
 				duration: asset.duration || 0,
-				hint: asset.hint,
+				hint,
 				systemId: asset.systemId,
 				loop: !!asset.loop,
 				global

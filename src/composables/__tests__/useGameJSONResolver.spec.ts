@@ -65,6 +65,16 @@ describe("useGameJSONResolver", () => {
 						prop: "se"
 					}
 				},
+				bgm: {
+					type: "audio",
+					path: "audio/bgm",
+					duration: 25000,
+					systemId: "music",
+					hint: {
+						extensions: [".ogg", ".m4a", ".aac"],
+						prop: "bgm"
+					}
+				},
 				bin: {
 					type: "binary",
 					path: "bin/data.bin",
@@ -104,6 +114,8 @@ describe("useGameJSONResolver", () => {
 			imageFile,
 			// se
 			seFile,
+			// bgm
+			bgmFile,
 			// data.bin
 			binFile,
 			// unknown
@@ -157,9 +169,22 @@ describe("useGameJSONResolver", () => {
 		expect(se.duration).toBe(1000);
 		expect(se.filename).toBe("se");
 		expect(se.hint).toEqual({
+			extensions: [".ogg", ".aac"],
 			prop: "se"
 		});
 		expect(se.global).toBe(false);
+
+		const bgm = bgmFile as PseudoAudioAssetFile;
+		expect(bgm.assetType).toBe("audio");
+		expect(bgm.editorType).toBe("audio");
+		expect(bgm.systemId).toBe("music");
+		expect(bgm.duration).toBe(25000);
+		expect(bgm.filename).toBe("bgm");
+		expect(bgm.hint).toEqual({
+			extensions: [".ogg", ".m4a", ".aac"],
+			prop: "bgm"
+		});
+		expect(bgm.global).toBe(false);
 
 		const bin = binFile as PseudoBinaryAssetFile;
 		expect(bin.assetType).toBe("binary");
