@@ -12,7 +12,7 @@ defineProps<Props>();
 
 <style lang="scss" scoped>
 button {
-	display: flex;
+	display: inline-flex;
 	justify-content: center;
 	align-items: center;
 	padding: 0.5em 1em;

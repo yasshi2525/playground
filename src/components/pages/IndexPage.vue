@@ -177,6 +177,70 @@
 				>
 			</li>
 		</ul>
+		<h2>Download</h2>
+		<ul>
+			<li>
+				<router-link
+					target="_blank"
+					:to="{
+						name: 'download',
+						params: {
+							base64_uri_params: encode(
+								JSON.stringify({
+									type: 'gameJsonUri',
+									name: 'helloworld',
+									uri: 'https://akashic-games.github.io/demo/content/helloworld/game.json'
+								})
+							)
+						}
+					}"
+					>Hello World</router-link
+				>
+			</li>
+			<li>
+				<router-link
+					target="_blank"
+					:to="{
+						name: 'download',
+						params: {
+							base64_uri_params: encode(
+								JSON.stringify({
+									type: 'gameJsonUri',
+									name: 'helloworld',
+									uri: 'https://akashic-games.github.io/demo/content/helloworld/game.json'
+								})
+							)
+						},
+						query: {
+							autoStart: null
+						}
+					}"
+					>Hello World (auto start)</router-link
+				>
+			</li>
+			<li>
+				<router-link
+					target="_blank"
+					:to="{
+						name: 'download',
+						params: {
+							base64_uri_params: encode(
+								JSON.stringify({
+									type: 'gameJsonUri',
+									name: 'helloworld',
+									uri: 'https://akashic-games.github.io/demo/content/helloworld/game.json'
+								})
+							)
+						},
+						query: {
+							autoStart: null,
+							autoClose: null
+						}
+					}"
+					>Hello World (auto start &amp; close window)</router-link
+				>
+			</li>
+		</ul>
 	</div>
 </template>
 
