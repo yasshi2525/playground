@@ -14,8 +14,24 @@ const router = createRouter({
 			component: () => import("~/components/pages/IndexPage.vue")
 		},
 		{
-			path: "/edit/:name/",
+			path: "/edit/:base64_uri_params",
 			name: "edit",
+			component: () => import("~/components/pages/PlaygroundPage.vue"),
+			props: router => {
+				const params: UriParameter = JSON.parse(decode(router.params.base64_uri_params.toString()));
+				if (params.type !== "gameJsonUri") {
+					throw new Error("Parse Error: unknown uri parameter");
+				}
+				return {
+					name: params.name ?? "noname",
+					gameJsonUri: params.uri,
+					showDownloadButton: router.query.nodl !== null // download ボタンを非表示化 (query の初期値は null)
+				};
+			}
+		},
+		{
+			path: "/presets/:name/",
+			name: "preset",
 			component: () => import("~/components/pages/PlaygroundPage.vue"),
 			props: router => {
 				const gameJsonUri = urlJoin(
