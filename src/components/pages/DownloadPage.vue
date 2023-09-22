@@ -40,9 +40,6 @@ const download = async () => {
 	await downloadAsZip(props.name, gameConfs.pseudoFiles);
 };
 
-console.log("autoStartDownload", props.autoStartDownload);
-console.log("autoCloseWindow", props.autoCloseWindow);
-
 onMounted(async () => {
 	await gameConfs.fetchPseudoFilesFromUri(props.gameJsonUri);
 	if (props.autoStartDownload) {
