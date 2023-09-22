@@ -14,8 +14,7 @@
 </template>
 
 <script setup lang="ts">
-import { provide } from "vue";
-import { onMounted } from "vue";
+import { onMounted, provide } from "vue";
 import BaseButton from "~/components/atoms/BaseButton.vue";
 import { useGameContext, useGameContextKey } from "~/composables/useGameContext";
 import { useGameJSONResolver, useGameJSONResolverKey } from "~/composables/useGameJSONResolver";
