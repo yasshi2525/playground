@@ -2,7 +2,8 @@
 	<div>
 		<div class="message">
 			<p>Trying to download the game.</p>
-			<p>If the download doesn't start automatically, please click the following:</p>
+			<p v-if="autoStartDownload">If the download doesn't start automatically, please click the following:</p>
+			<p v-else>To start the download, please click the following:</p>
 		</div>
 		<div class="button">
 			<p>
