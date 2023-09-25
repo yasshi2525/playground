@@ -83,6 +83,23 @@ const router = createRouter({
 					showTab
 				};
 			}
+		},
+		{
+			path: "/download/:base64_uri_params",
+			name: "download",
+			component: () => import("~/components/pages/DownloadPage.vue"),
+			props: router => {
+				const params: UriParameter = JSON.parse(decode(router.params.base64_uri_params.toString()));
+				if (params.type !== "gameJsonUri") {
+					throw new Error("Parse Error: unknown uri parameter");
+				}
+				return {
+					name: params.name ?? "noname",
+					gameJsonUri: params.uri,
+					autoStartDownload: router.query.autoStart === null, // 自動でダウンロードを開始する (query の初期値は null)
+					autoCloseWindow: router.query.autoClose === null // 自動でタブ or ウィンドウを閉じる (query の初期値は null)
+				};
+			}
 		}
 	]
 });
