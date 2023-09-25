@@ -7,7 +7,7 @@
 
 # Akashic Playground
 
-[website](https://akashic-games.github.io/playground/#/edit/default)
+[Demo](https://akashic-games.github.io/playground/#/presets/default)
 
 # development
 

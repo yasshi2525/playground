@@ -2,13 +2,87 @@
 	<div>
 		<h2>Playground</h2>
 		<ul>
-			<li><router-link :to="{ name: 'edit', params: { name: 'default' } }">Playground (default)</router-link></li>
-			<li><router-link :to="{ name: 'edit', params: { name: 'timeline' } }">Playground (timeline)</router-link></li>
-			<li><router-link :to="{ name: 'edit', params: { name: 'label' } }">Playground (label)</router-link></li>
 			<li>
-				<router-link :to="{ name: 'edit', params: { name: 'box2d' }, query: { nodl: null } }"
-					>Playground (box2d, DLボタン非表示)</router-link
+				<router-link
+					:to="{
+						name: 'edit',
+						params: {
+							base64_uri_params: encode(
+								JSON.stringify({
+									type: 'gameJsonUri',
+									name: 'helloworld',
+									uri: 'https://akashic-games.github.io/demo/content/helloworld/game.json'
+								})
+							)
+						}
+					}"
+					>Hello World</router-link
 				>
+			</li>
+			<li>
+				<router-link
+					:to="{
+						name: 'edit',
+						params: {
+							base64_uri_params: encode(
+								JSON.stringify({
+									type: 'gameJsonUri',
+									name: 'oekaki',
+									uri: 'https://akashic-games.github.io/demo/content/oekaki/game.json'
+								})
+							)
+						}
+					}"
+					>おえかき</router-link
+				>
+			</li>
+			<li>
+				<router-link
+					:to="{
+						name: 'edit',
+						params: {
+							base64_uri_params: encode(
+								JSON.stringify({
+									type: 'gameJsonUri',
+									name: 'newtons-cradle',
+									uri: 'https://akashic-games.github.io/demo/content/newtons-cradle/game.json'
+								})
+							)
+						},
+						query: { nodl: null }
+					}"
+					>ニュートンのゆりかご (DLボタン非表示)</router-link
+				>
+			</li>
+			<li>
+				<router-link
+					:to="{
+						name: 'edit',
+						params: {
+							base64_uri_params: encode(
+								JSON.stringify({
+									type: 'gameJsonUri',
+									name: 'monban',
+									uri: 'https://akashic-games.github.io/demo/content/monban/game.json'
+								})
+							)
+						}
+					}"
+					>門番</router-link
+				>
+			</li>
+		</ul>
+		<h2>Playground (presets)</h2>
+		<ul>
+			<li>
+				<router-link :to="{ name: 'preset', params: { name: 'default' } }">default</router-link>
+			</li>
+			<li>
+				<router-link :to="{ name: 'preset', params: { name: 'timeline' } }">timeline</router-link>
+			</li>
+			<li><router-link :to="{ name: 'preset', params: { name: 'label' } }">label</router-link></li>
+			<li>
+				<router-link :to="{ name: 'preset', params: { name: 'box2d' }, query: { nodl: null } }">box2d (DLボタン非表示)</router-link>
 			</li>
 		</ul>
 		<h2>Sample</h2>
