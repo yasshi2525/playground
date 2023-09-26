@@ -97,11 +97,7 @@ if (props.autoplay) {
 	display: flex;
 	flex-direction: column;
 	position: relative;
-}
-
-.container-page {
-	width: 100%;
-	height: 100%;
+	overflow: hidden;
 }
 
 .container-overlay {
