@@ -13,7 +13,7 @@
 			{{ props.note }}
 		</div>
 		<div ref="scalableRef">
-			<canvas ref="canvasRef" class="game-canvas transparent" :width="props.width" :height="props.height" />
+			<canvas ref="canvasRef" class="game-canvas transparent" :width="props.width" :height="props.height"></canvas>
 		</div>
 	</div>
 </template>
