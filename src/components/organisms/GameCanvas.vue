@@ -155,4 +155,8 @@ onUnmounted(() => {
 	width: 100%;
 	height: 100%;
 }
+
+.game-canvas {
+	touch-action: none;
+}
 </style>
