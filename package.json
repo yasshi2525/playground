@@ -1,13 +1,13 @@
 {
   "private": true,
-  "name": "@akashic/playground",
+  "name": "@yasshi2525/playground",
   "version": "1.0.0",
   "description": "",
-  "author": "DWANGO Co., Ltd.",
+  "author": "yasshi2525",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/akashic-games/akashic-playground.git"
+    "url": "git+https://github.com/yasshi2525/playground.git"
   },
   "scripts": {
     "prepare": "npm run build",

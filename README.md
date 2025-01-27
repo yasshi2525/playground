@@ -1,13 +1,9 @@
-![test](https://github.com/akashic-games/playground/workflows/test/badge.svg?branch=main)
-![deploy](https://github.com/akashic-games/playground/workflows/deploy/badge.svg?branch=main)
-
-<p align="center">
-<img src="https://raw.githubusercontent.com/akashic-games/playground/main/img/akashic.png" />
-</p>
+![test](https://github.com/yasshi2525/playground/workflows/test/badge.svg?branch=main)
+![deploy](https://github.com/yasshi2525/playground/workflows/deploy/badge.svg?branch=main)
 
 # Akashic Playground
 
-[Demo](https://akashic-games.github.io/playground/#/presets/default)
+[Demo](https://yasshi2525.github.io/playground/#/presets/default)
 
 # development
 
