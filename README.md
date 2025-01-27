@@ -1,5 +1,5 @@
-![test](https://github.com/yasshi2525/playground/workflows/test/badge.svg?branch=main)
-![deploy](https://github.com/yasshi2525/playground/workflows/deploy/badge.svg?branch=main)
+![test](https://github.com/yasshi2525/playground/actions/workflows/test.yml/badge.svg?branch=main)
+![deploy](https://github.com/yasshi2525/playground/actions/workflows/deploy.yml/badge.svg?branch=main)
 
 # Akashic Playground
 
