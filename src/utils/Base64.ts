@@ -1,9 +1,9 @@
-import * as jb from "js-base64";
+// クライアント(GitHubPages+Jekyll)がbase64に対応できないためURL Encodingに変更
 
 export function encode(str: string): string {
-	return jb.encode(str, true);
+	return encodeURI(str);
 }
 
 export function decode(str: string): string {
-	return jb.decode(str);
+	return decodeURI(str).replace(/\+/g, " ");
 }
