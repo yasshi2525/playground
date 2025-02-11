@@ -1,0 +1,16 @@
+{
+  "width": 200,
+  "height": 200,
+  "fps": 60,
+  "main": "./script/main.js",
+  "assets": {
+    "main": {
+      "type": "script",
+      "path": "script/main.js",
+      "global": true
+    }
+  },
+  "environment": {
+    "sandbox-runtime": "3"
+  }
+}
